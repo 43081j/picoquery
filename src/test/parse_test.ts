@@ -1,6 +1,11 @@
 import * as assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {parse, type UserParseOptions} from '../parse.js';
+import {
+  parse,
+  type UserParseOptions,
+  numberKeyDeserializer,
+  numberValueDeserializer
+} from '../parse.js';
 
 type TestCase = {
   input: string;
@@ -8,89 +13,156 @@ type TestCase = {
   options?: UserParseOptions;
 };
 
+const createSparseArray = <T>(arr: T[]): T[] => {
+  const newArr = Array(arr.length);
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+    if (item === undefined) {
+      continue;
+    }
+    newArr[i] = item;
+  }
+  return newArr;
+};
+
 const testCases: TestCase[] = [
   // Defaults
   {
-    input: 'foo=1&bar=2',
-    output: {foo: 1, bar: 2}
+    input: 'foo=x&bar=y',
+    output: {foo: 'x', bar: 'y'}
   },
   {
-    input: 'foo=1&foo=2',
-    output: {foo: [1, 2]}
+    input: 'foo=x&foo=y',
+    output: {foo: 'y'}
   },
   {
-    input: 'foo[bar]=123',
-    output: {foo: {bar: 123}}
+    input: 'foo.bar=x',
+    output: {foo: {bar: 'x'}}
   },
   {
-    input: 'foo[]=1',
-    output: {'foo[]': 1}
+    input: 'foo[bar]=x',
+    output: {'foo[bar]': 'x'}
   },
   {
-    input: 'foo[0]=1',
-    output: {'foo[0]': 1}
+    input: 'foo[]=x',
+    output: {'foo[]': 'x'}
   },
   {
-    input: 'foo=1;bar=2',
-    output: {foo: '1;bar=2'}
+    input: 'foo[0]=x',
+    output: {'foo[0]': 'x'}
+  },
+  {
+    input: 'foo=x;bar=y',
+    output: {foo: 'x;bar=y'}
+  },
+
+  // Number deserializers
+  {
+    input: '303=foo',
+    output: {'303': 'foo'}
   },
   {
     input: '303=foo',
-    output: {303: 'foo'}
+    output: {303: 'foo'},
+    options: {keyDeserializer: numberKeyDeserializer}
+  },
+  {
+    input: 'foo=303',
+    output: {foo: 303},
+    options: {valueDeserializer: numberValueDeserializer}
+  },
+  {
+    input: 'foo.0=1&foo.1=2',
+    output: {foo: [1, 2]},
+    options: {valueDeserializer: numberValueDeserializer}
   },
 
   // Array syntax: bracket
   {
-    input: 'foo[]=1&foo[]=2',
-    output: {foo: [1, 2]},
-    options: {arraySyntax: 'bracket'}
+    input: 'foo[]=x&foo[]=y',
+    output: {foo: ['x', 'y']},
+    options: {arrayRepeat: true, arrayRepeatSyntax: 'bracket'}
   },
-  // Array syntax: repeat (DEFAULT)
+  // Array syntax: repeat
   {
-    input: 'foo=1&foo=2',
-    output: {foo: [1, 2]},
-    options: {arraySyntax: 'repeat'}
+    input: 'foo=x&foo=y',
+    output: {foo: ['x', 'y']},
+    options: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
   },
-  // Array syntax: index
+
+  // Nesting syntax: index
   {
-    input: 'foo[0]=1&foo[1]=2',
-    output: {foo: [1, 2]},
-    options: {arraySyntax: 'index'}
+    input: 'foo[0]=x&foo[1]=y',
+    output: {foo: ['x', 'y']},
+    options: {nested: true, nestingSyntax: 'index'}
   },
   {
-    input: 'foo[0]=1&foo[2]=2',
-    output: {foo: [1, 2]},
-    options: {arraySyntax: 'index'}
+    input: 'foo[0]=x&foo[1]=y',
+    output: {'foo[0]': 'x', 'foo[1]': 'y'},
+    options: {nested: true, nestingSyntax: 'dot'}
   },
-  // Array syntax: index-sparse
   {
-    input: 'foo[0]=1&foo[2]=2',
-    output: {foo: [1, undefined, 2]},
-    options: {arraySyntax: 'index-sparse'}
+    input: 'foo[bar]=x&foo[baz]=y',
+    output: {foo: {bar: 'x', baz: 'y'}},
+    options: {nested: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo[bar]=x&foo[baz]=y',
+    output: {'foo[bar]': 'x', 'foo[baz]': 'y'},
+    options: {nested: true, nestingSyntax: 'dot'}
+  },
+
+  // Nesting syntax: dot
+  {
+    input: 'foo.0=x&foo.1=y',
+    output: {foo: ['x', 'y']},
+    options: {nested: true, nestingSyntax: 'dot'}
+  },
+  {
+    input: 'foo.0=x&foo.1=y',
+    output: {'foo.0': 'x', 'foo.1': 'y'},
+    options: {nested: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo.bar=x&foo.baz=y',
+    output: {foo: {bar: 'x', baz: 'y'}},
+    options: {nested: true, nestingSyntax: 'dot'}
+  },
+  {
+    input: 'foo.bar=x&foo.baz=y',
+    output: {'foo.bar': 'x', 'foo.baz': 'y'},
+    options: {nested: true, nestingSyntax: 'index'}
+  },
+
+  // Sparse array with nestinh
+  {
+    input: 'foo[0]=x&foo[2]=y',
+    output: {foo: createSparseArray(['x', undefined, 'y'])},
+    options: {nested: true, nestingSyntax: 'index'}
   },
 
   // Delimiter: ;
   {
-    input: 'foo=1;bar=2',
-    output: {foo: 1, bar: 2},
+    input: 'foo=x;bar=y',
+    output: {foo: 'x', bar: 'y'},
     options: {delimiter: ';'}
   },
 
   // Nested: false
   {
-    input: 'foo[bar]=123',
-    output: {'foo[bar]': 123},
+    input: 'foo[bar]=x',
+    output: {'foo[bar]': 'x'},
     options: {nested: false}
   },
 
   // With a key deserializer
   {
     input: 'three=foo&four=bar',
-    output: {3: 'foo', four: 'bar'},
+    output: {trzy: 'foo', four: 'bar'},
     options: {
       keyDeserializer: (key) => {
         if (key === 'three') {
-          return 3;
+          return 'trzy';
         }
         return key;
       }

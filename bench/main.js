@@ -1,5 +1,6 @@
 import {Bench} from 'tinybench';
 import {parse} from '../lib/main.js';
+import {parse as fastParse} from 'fast-querystring';
 
 const inputs = [
   'foo=123&bar=456',
@@ -9,11 +10,17 @@ const inputs = [
 ];
 const bench = new Bench();
 
-bench.add('nanoquery (parse)', () => {
-  for (const input of inputs) {
-    parse(input);
-  }
-});
+bench
+  .add('nanoquery (parse)', () => {
+    for (const input of inputs) {
+      parse(input);
+    }
+  })
+  .add('fast-querystring (no nesting)', () => {
+    for (const input of inputs) {
+      fastParse(input);
+    }
+  });
 
 await bench.warmup();
 await bench.run();
