@@ -1,6 +1,6 @@
 {
   "name": "nanoquery",
-  "version": "0.0.1",
+  "version": "0.0.0-dev",
   "type": "module",
   "description": "A small library for parsing and serialisation query strings",
   "main": "lib/main.js",
@@ -10,10 +10,11 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node --test lib/test/**/*_test.js",
+    "test": "npm run build && node --test",
     "lint": "eslint src",
     "format": "prettier --write src",
-    "bench": "node ./bench/main.js"
+    "bench": "node ./bench/main.js",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -34,14 +35,18 @@
   "homepage": "https://github.com/es-tooling/nanoquery#readme",
   "devDependencies": {
     "@eslint/js": "^9.1.1",
+    "@types/dlv": "^1.1.4",
     "@types/node": "^20.12.7",
     "c8": "^9.1.0",
     "prettier": "^3.2.5",
     "tinybench": "^2.8.0",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^7.7.1"
+    "typescript-eslint": "^7.7.1",
+    "fast-querystring": "^1.1.2"
   },
   "dependencies": {
-    "fast-querystring": "^1.1.2"
+    "dlv": "^1.1.3",
+    "dset": "^3.1.3",
+    "fast-decode-uri-component": "^1.0.1"
   }
 }
