@@ -1,4 +1,4 @@
-/.tshy
 /node_modules
 /lib
 *.swp
+/coverage
