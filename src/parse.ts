@@ -6,6 +6,7 @@ import {
 import fastDecode from 'fast-decode-uri-component';
 import {dset} from 'dset';
 import dlv from 'dlv';
+import {splitByIndexPattern} from './string-util.js';
 
 export type ParsedQuery = Record<PropertyKey, unknown>;
 export type UserParseOptions = Partial<ParseOptions>;
@@ -37,31 +38,6 @@ const defaultOptions: ParseOptions = {
   arrayRepeatSyntax: 'repeat',
   delimiter: 38
 };
-
-function splitByIndexPattern(input: string): string[] {
-  const result: string[] = [];
-  let buffer = '';
-
-  for (let i = 0; i < input.length; i++) {
-    const chr = input[i];
-    const nextChr = input[i + 1];
-    if (chr === '[' || chr === ']') {
-      result.push(buffer);
-      buffer = '';
-      if (nextChr === '[') {
-        i++;
-      }
-    } else {
-      buffer += chr;
-    }
-  }
-
-  if (buffer) {
-    result.push(buffer);
-  }
-
-  return result;
-}
 
 const regexPlus = /\+/g;
 const Empty = function () {} as unknown as {new (): ParsedQuery};

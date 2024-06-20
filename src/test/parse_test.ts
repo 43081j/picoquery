@@ -76,6 +76,16 @@ const testCases: TestCase[] = [
     output: {foo: [1, 2]},
     options: {valueDeserializer: numberValueDeserializer}
   },
+  {
+    input: 'foo=bar',
+    output: {foo: 'bar'},
+    options: {keyDeserializer: numberKeyDeserializer}
+  },
+  {
+    input: 'foo=bar',
+    output: {foo: 'bar'},
+    options: {valueDeserializer: numberValueDeserializer}
+  },
 
   // Array syntax: bracket
   {
@@ -115,6 +125,11 @@ const testCases: TestCase[] = [
     input: 'foo[bar]=x&foo[baz]=y',
     output: {'foo[bar]': 'x', 'foo[baz]': 'y'},
     options: {nested: true, nestingSyntax: 'dot'}
+  },
+  {
+    input: 'foo[bar][baz]=dwa',
+    output: {foo: {bar: {baz: 'dwa'}}},
+    options: {nested: true, nestingSyntax: 'index'}
   },
 
   // Nesting syntax: dot
