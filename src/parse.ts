@@ -10,7 +10,6 @@ import {splitByIndexPattern} from './string-util.js';
 
 export type ParsedQuery = Record<PropertyKey, unknown>;
 export type UserParseOptions = Partial<ParseOptions>;
-type DlvKey = string | (string | number)[];
 
 export const numberKeyDeserializer: DeserializeKeyFunction = (key) => {
   const asNumber = Number(key);
@@ -20,10 +19,7 @@ export const numberKeyDeserializer: DeserializeKeyFunction = (key) => {
   return key;
 };
 
-export const numberValueDeserializer: DeserializeValueFunction = (
-  _key,
-  value
-) => {
+export const numberValueDeserializer: DeserializeValueFunction = (value) => {
   const asNumber = Number(value);
   if (!Number.isNaN(asNumber)) {
     return asNumber;
@@ -31,12 +27,16 @@ export const numberValueDeserializer: DeserializeValueFunction = (
   return value;
 };
 
+const identityFunc = <T>(v: T): T => v;
+
 const defaultOptions: ParseOptions = {
   nested: true,
   nestingSyntax: 'dot',
   arrayRepeat: false,
   arrayRepeatSyntax: 'repeat',
-  delimiter: 38
+  delimiter: 38,
+  valueDeserializer: identityFunc,
+  keyDeserializer: identityFunc
 };
 
 const regexPlus = /\+/g;
@@ -49,19 +49,17 @@ Empty.prototype = Object.create(null);
  * @param {ParseOptions=} options
  */
 export function parse(input: string, options?: UserParseOptions): ParsedQuery {
-  const parseOptions: ParseOptions = {...defaultOptions, ...options};
-  const charDelimiter =
-    typeof parseOptions.delimiter === 'string'
-      ? parseOptions.delimiter.charCodeAt(0)
-      : parseOptions.delimiter;
   const {
-    valueDeserializer,
-    keyDeserializer,
-    arrayRepeatSyntax,
-    nested,
-    arrayRepeat,
-    nestingSyntax
-  } = parseOptions;
+    valueDeserializer = defaultOptions.valueDeserializer,
+    keyDeserializer = defaultOptions.keyDeserializer,
+    arrayRepeatSyntax = defaultOptions.arrayRepeatSyntax,
+    nested = defaultOptions.nested,
+    arrayRepeat = defaultOptions.arrayRepeat,
+    nestingSyntax = defaultOptions.nestingSyntax,
+    delimiter = defaultOptions.delimiter
+  } = options ?? {};
+  const charDelimiter =
+    typeof delimiter === 'string' ? delimiter.charCodeAt(0) : delimiter;
 
   // Optimization: Use new Empty() instead of Object.create(null) for performance
   // v8 has a better optimization for initializing functions compared to Object
@@ -82,6 +80,7 @@ export function parse(input: string, options?: UserParseOptions): ParsedQuery {
   let valueHasPlus = false;
   let hasBothKeyValuePair = false;
   let c = 0;
+  let arrayRepeatBracketIndex = -1;
 
   // Have a boundary of input.length + 1 to access last pair inside the loop.
   for (let i = 0; i < inputLength + 1; i++) {
@@ -96,7 +95,10 @@ export function parse(input: string, options?: UserParseOptions): ParsedQuery {
         equalityIndex = i;
       }
 
-      key = input.slice(startingIndex + 1, equalityIndex);
+      key = input.slice(
+        startingIndex + 1,
+        arrayRepeatBracketIndex > -1 ? arrayRepeatBracketIndex : equalityIndex
+      );
 
       // Add key/value pair only if the range size is greater than 1; a.k.a. contains at least "="
       if (hasBothKeyValuePair || key.length > 0) {
@@ -122,36 +124,23 @@ export function parse(input: string, options?: UserParseOptions): ParsedQuery {
           }
         }
 
-        if (
-          arrayRepeat &&
-          arrayRepeatSyntax === 'bracket' &&
-          key.endsWith('[]')
-        ) {
-          key = key.slice(0, -2);
-        }
+        const newValue = valueDeserializer(value, key);
+        const newKey = keyDeserializer(key);
+        let dlvKey;
 
-        const newValue = valueDeserializer
-          ? valueDeserializer(key, value)
-          : value;
-        const newKey = keyDeserializer ? keyDeserializer(key) : key;
-        let dlvKey = (typeof newKey === 'string' ? newKey : [newKey]) as DlvKey;
-
-        if (typeof dlvKey === 'string' && nested) {
+        if (typeof newKey === 'string' && nested) {
           if (nestingSyntax === 'index') {
-            dlvKey = splitByIndexPattern(dlvKey);
+            dlvKey = splitByIndexPattern(newKey);
           } else {
-            dlvKey = dlvKey.split('.');
+            dlvKey = newKey.indexOf('.') > -1 ? newKey.split('.') : [newKey];
           }
         }
 
-        const shouldDoNesting =
-          nested && (dlvKey as string[]).pop !== undefined;
-        const currentValue = shouldDoNesting
-          ? dlv(result, dlvKey)
-          : result[newKey];
+        const currentValue =
+          nested && dlvKey ? dlv(result, dlvKey) : result[newKey];
 
         if (currentValue === undefined || !arrayRepeat) {
-          if (shouldDoNesting) {
+          if (nested && dlvKey) {
             dset(result, dlvKey, newValue);
           } else {
             result[newKey] = newValue;
@@ -161,7 +150,7 @@ export function parse(input: string, options?: UserParseOptions): ParsedQuery {
           if ((currentValue as unknown[]).pop) {
             (currentValue as unknown[]).push(newValue);
           } else {
-            if (shouldDoNesting) {
+            if (nested && dlvKey) {
               dset(result, dlvKey, [currentValue, newValue]);
             } else {
               result[newKey] = [currentValue, newValue];
@@ -178,6 +167,14 @@ export function parse(input: string, options?: UserParseOptions): ParsedQuery {
       shouldDecodeValue = false;
       keyHasPlus = false;
       valueHasPlus = false;
+      arrayRepeatBracketIndex = -1;
+    } else if (c === 93) {
+      if (arrayRepeat && arrayRepeatSyntax === 'bracket') {
+        const prevIndex = i - 1;
+        if (input.charCodeAt(prevIndex) === 91) {
+          arrayRepeatBracketIndex = prevIndex;
+        }
+      }
     }
     // Check '='
     else if (c === 61) {
