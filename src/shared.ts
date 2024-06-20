@@ -16,8 +16,8 @@ export type NestingSyntax =
 export const CONTINUE = Symbol('continue');
 
 export type DeserializeValueFunction = (
-  key: string,
-  value: string
+  value: string,
+  key: string
 ) => unknown | typeof CONTINUE;
 
 export type DeserializeKeyFunction = (
@@ -47,6 +47,6 @@ export interface ParseOptions {
   delimiter: string | number;
 
   // Custom deserializers
-  valueDeserializer?: DeserializeValueFunction;
-  keyDeserializer?: DeserializeKeyFunction;
+  valueDeserializer: DeserializeValueFunction;
+  keyDeserializer: DeserializeKeyFunction;
 }

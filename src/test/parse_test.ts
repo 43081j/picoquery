@@ -194,7 +194,7 @@ const testCases: TestCase[] = [
     input: 'foo=three&bar=four',
     output: {foo: 3, bar: 'four'},
     options: {
-      valueDeserializer: (_key, value) => {
+      valueDeserializer: (value) => {
         if (value === 'three') {
           return 3;
         }

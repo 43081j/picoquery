@@ -1,10 +1,15 @@
 export function splitByIndexPattern(input: string): string[] {
+  const firstIndex = input.indexOf('[');
+  if (firstIndex === -1) {
+    return [input];
+  }
+
   const result: string[] = [];
   const inputLength = input.length;
   let offset = 0;
   let open = false;
 
-  for (let i = 0; i < inputLength; i++) {
+  for (let i = firstIndex; i < inputLength; i++) {
     const chr = input[i];
     if (chr === '[' && !open) {
       if (offset !== i) {
