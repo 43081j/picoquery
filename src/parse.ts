@@ -186,7 +186,7 @@ export function parse(input: string, options?: UserParseOptions): ParsedQuery {
             (currentValue as unknown[]).push(newValue);
           } else {
             if (shouldDoNesting) {
-              dset(result, newKey as string, [currentValue, newValue]);
+              dset(result, dlvKey, [currentValue, newValue]);
             } else {
               result[newKey] = [currentValue, newValue];
             }

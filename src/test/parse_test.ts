@@ -89,6 +89,11 @@ const testCases: TestCase[] = [
     output: {foo: ['x', 'y']},
     options: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
   },
+  {
+    input: 'foo.bar=x&foo.bar=y',
+    output: {foo: {bar: ['x', 'y']}},
+    options: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
+  },
 
   // Nesting syntax: index
   {
