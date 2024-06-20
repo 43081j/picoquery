@@ -11,7 +11,7 @@ const inputs = [
 const bench = new Bench();
 
 bench
-  .add('nanoquery (parse)', () => {
+  .add('picoquery (parse)', () => {
     for (const input of inputs) {
       parse(input);
     }

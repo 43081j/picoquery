@@ -1,4 +1,4 @@
-# nanoquery
+# picoquery
 
 A lightweight query string parser/stringifier with support for nesting and some
 configurability.
@@ -8,7 +8,7 @@ Built on top of [fast-querystring](https://github.com/anonrig/fast-querystring).
 ## Install
 
 ```sh
-npm i -S nanoquery
+npm i -S picoquery
 ```
 
 ## Usage
@@ -16,7 +16,7 @@ npm i -S nanoquery
 Parsing a query string:
 
 ```ts
-import {parse} from 'nanoquery';
+import {parse} from 'picoquery';
 
 parse('foo.bar=abc&baz=def');
 
