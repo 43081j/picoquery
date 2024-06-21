@@ -58,7 +58,7 @@ options.
 Parses the given query string into an object, optionally with configured
 options.
 
-### Options
+## Options
 
 ### Default options
 
@@ -74,7 +74,7 @@ The default options are as follows:
 }
 ```
 
-#### `nested`
+### `nested`
 
 When true, nested objects are supported.
 
