@@ -55,6 +55,28 @@ const testCases: TestCase[] = [
     input: 'foo=x;bar=y',
     output: {foo: 'x;bar=y'}
   },
+  {
+    input: 'foo&bar',
+    output: {foo: '', bar: ''}
+  },
+
+  // Encoded keys and values
+  {
+    input: 'foo+bar=baz',
+    output: {'foo bar': 'baz'}
+  },
+  {
+    input: 'foo%20bar=baz',
+    output: {'foo bar': 'baz'}
+  },
+  {
+    input: 'foo=bar+baz',
+    output: {foo: 'bar baz'}
+  },
+  {
+    input: 'foo=bar%20baz',
+    output: {foo: 'bar baz'}
+  },
 
   // Number deserializers
   {
@@ -98,6 +120,16 @@ const testCases: TestCase[] = [
     input: 'foo=x&foo=y',
     output: {foo: ['x', 'y']},
     options: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
+  },
+  {
+    input: 'foo=x&foo=y&foo=z',
+    output: {foo: ['x', 'y', 'z']},
+    options: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
+  },
+  {
+    input: 'foo=x&foo=y&foo=z',
+    output: {foo: ['x', 'y', 'z']},
+    options: {nested: false, arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
   },
   {
     input: 'foo.bar=x&foo.bar=y',
@@ -215,4 +247,9 @@ test('parse', async (t) => {
       }
     );
   }
+
+  await t.test('returns empty object for non-string input', () => {
+    const result = parse(808 as unknown as string);
+    assert.deepEqual({...result}, {});
+  });
 });
