@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/es-tooling/picoquery.git"
+    "url": "git+https://github.com/43081j/picoquery.git"
   },
   "keywords": [
     "qs",
@@ -31,9 +31,9 @@
   "author": "James Garbutt (https://github.com/43081j)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/es-tooling/picoquery/issues"
+    "url": "https://github.com/43081j/picoquery/issues"
   },
-  "homepage": "https://github.com/es-tooling/picoquery#readme",
+  "homepage": "https://github.com/43081j/picoquery#readme",
   "devDependencies": {
     "@eslint/js": "^9.1.1",
     "@types/node": "^20.12.7",
