@@ -31,7 +31,7 @@ function walkNestedValues(
     nestingSyntax = defaultOptions.nestingSyntax,
     arrayRepeat = defaultOptions.arrayRepeat,
     arrayRepeatSyntax = defaultOptions.arrayRepeatSyntax,
-    nested = defaultOptions.nested
+    nesting = defaultOptions.nesting
   } = options;
 
   if (depth > MAX_DEPTH) {
@@ -64,7 +64,7 @@ function walkNestedValues(
     if (
       typeof value === 'object' &&
       value !== null &&
-      (nested || (arrayRepeat && probableArray))
+      (nesting || (arrayRepeat && probableArray))
     ) {
       walkNestedValues(
         value as Record<PropertyKey, unknown>,

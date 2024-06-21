@@ -9,7 +9,7 @@ const suites = [
     inputs: [{foo: 'x', bar: 'y', baz: 'z'}],
     options: {
       qs: {allowDots: false},
-      pico: {nested: false}
+      pico: {nesting: false}
     }
   },
   {
@@ -27,7 +27,7 @@ const suites = [
     ],
     options: {
       qs: {allowDots: true},
-      pico: {nested: true}
+      pico: {nesting: true}
     }
   },
   {
@@ -45,7 +45,7 @@ const suites = [
     ],
     options: {
       qs: {allowDots: false},
-      pico: {nested: true, nestingSyntax: 'index'}
+      pico: {nesting: true, nestingSyntax: 'index'}
     }
   },
   {
@@ -53,7 +53,7 @@ const suites = [
     inputs: [{foo: 'a', bar: 'b', baz: 'c'}],
     options: {
       qs: {delimiter: ';'},
-      pico: {nested: false, delimiter: ';'}
+      pico: {nesting: false, delimiter: ';'}
     }
   },
   {

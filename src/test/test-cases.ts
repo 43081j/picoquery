@@ -138,7 +138,7 @@ export const testCases: TestCase[] = [
   {
     input: 'foo=x&foo=y&foo=z',
     output: {foo: ['x', 'y', 'z']},
-    options: {nested: false, arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
+    options: {nesting: false, arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
   },
   {
     input: 'foo.bar=x&foo.bar=y',
@@ -151,53 +151,53 @@ export const testCases: TestCase[] = [
     input: 'foo[0]=x&foo[1]=y',
     stringifyOutput: 'foo%5B0%5D=x&foo%5B1%5D=y',
     output: {foo: ['x', 'y']},
-    options: {nested: true, nestingSyntax: 'index'}
+    options: {nesting: true, nestingSyntax: 'index'}
   },
   {
     input: 'foo[0]=x&foo[1]=y',
     stringifyOutput: 'foo%5B0%5D=x&foo%5B1%5D=y',
     output: {'foo[0]': 'x', 'foo[1]': 'y'},
-    options: {nested: true, nestingSyntax: 'dot'}
+    options: {nesting: true, nestingSyntax: 'dot'}
   },
   {
     input: 'foo[bar]=x&foo[baz]=y',
     stringifyOutput: 'foo%5Bbar%5D=x&foo%5Bbaz%5D=y',
     output: {foo: {bar: 'x', baz: 'y'}},
-    options: {nested: true, nestingSyntax: 'index'}
+    options: {nesting: true, nestingSyntax: 'index'}
   },
   {
     input: 'foo[bar]=x&foo[baz]=y',
     stringifyOutput: 'foo%5Bbar%5D=x&foo%5Bbaz%5D=y',
     output: {'foo[bar]': 'x', 'foo[baz]': 'y'},
-    options: {nested: true, nestingSyntax: 'dot'}
+    options: {nesting: true, nestingSyntax: 'dot'}
   },
   {
     input: 'foo[bar][baz]=dwa',
     stringifyOutput: 'foo%5Bbar%5D%5Bbaz%5D=dwa',
     output: {foo: {bar: {baz: 'dwa'}}},
-    options: {nested: true, nestingSyntax: 'index'}
+    options: {nesting: true, nestingSyntax: 'index'}
   },
 
   // Nesting syntax: dot
   {
     input: 'foo.0=x&foo.1=y',
     output: {foo: ['x', 'y']},
-    options: {nested: true, nestingSyntax: 'dot'}
+    options: {nesting: true, nestingSyntax: 'dot'}
   },
   {
     input: 'foo.0=x&foo.1=y',
     output: {'foo.0': 'x', 'foo.1': 'y'},
-    options: {nested: true, nestingSyntax: 'index'}
+    options: {nesting: true, nestingSyntax: 'index'}
   },
   {
     input: 'foo.bar=x&foo.baz=y',
     output: {foo: {bar: 'x', baz: 'y'}},
-    options: {nested: true, nestingSyntax: 'dot'}
+    options: {nesting: true, nestingSyntax: 'dot'}
   },
   {
     input: 'foo.bar=x&foo.baz=y',
     output: {'foo.bar': 'x', 'foo.baz': 'y'},
-    options: {nested: true, nestingSyntax: 'index'}
+    options: {nesting: true, nestingSyntax: 'index'}
   },
 
   // Sparse array with nestinh
@@ -205,7 +205,7 @@ export const testCases: TestCase[] = [
     input: 'foo[0]=x&foo[2]=y',
     stringifyOutput: 'foo%5B0%5D=x&foo%5B2%5D=y',
     output: {foo: createSparseArray(['x', undefined, 'y'])},
-    options: {nested: true, nestingSyntax: 'index'}
+    options: {nesting: true, nestingSyntax: 'index'}
   },
 
   // Delimiter: ;
@@ -220,7 +220,7 @@ export const testCases: TestCase[] = [
     input: 'foo[bar]=x',
     stringifyOutput: 'foo%5Bbar%5D=x',
     output: {'foo[bar]': 'x'},
-    options: {nested: false}
+    options: {nesting: false}
   },
 
   // With a key deserializer

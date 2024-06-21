@@ -10,19 +10,14 @@ export type NestingSyntax =
   // `foo[bar]`
   | 'index';
 
-export type DeserializeValueFunction = (
-  value: string,
-  key: string
-) => unknown;
+export type DeserializeValueFunction = (value: string, key: string) => unknown;
 
-export type DeserializeKeyFunction = (
-  key: string
-) => PropertyKey;
+export type DeserializeKeyFunction = (key: string) => PropertyKey;
 
 export interface Options {
   // Enable parsing nested objects and arrays
   // default: true
-  nested: boolean;
+  nesting: boolean;
 
   // Nesting syntax
   // default: "dot"
@@ -49,7 +44,7 @@ export interface Options {
 const identityFunc = <T>(v: T): T => v;
 
 export const defaultOptions: Options = {
-  nested: true,
+  nesting: true,
   nestingSyntax: 'dot',
   arrayRepeat: false,
   arrayRepeatSyntax: 'repeat',

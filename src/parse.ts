@@ -42,7 +42,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
     valueDeserializer = defaultOptions.valueDeserializer,
     keyDeserializer = defaultOptions.keyDeserializer,
     arrayRepeatSyntax = defaultOptions.arrayRepeatSyntax,
-    nested = defaultOptions.nested,
+    nesting = defaultOptions.nesting,
     arrayRepeat = defaultOptions.arrayRepeat,
     nestingSyntax = defaultOptions.nestingSyntax,
     delimiter = defaultOptions.delimiter
@@ -118,7 +118,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         const newKey = keyDeserializer(key);
         let dlvKey;
 
-        if (typeof newKey === 'string' && nested) {
+        if (typeof newKey === 'string' && nesting) {
           if (nestingSyntax === 'index') {
             dlvKey = splitByIndexPattern(newKey);
           } else {
@@ -127,10 +127,10 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         }
 
         const currentValue =
-          nested && dlvKey ? getDeepValue(result, dlvKey) : result[newKey];
+          nesting && dlvKey ? getDeepValue(result, dlvKey) : result[newKey];
 
         if (currentValue === undefined || !arrayRepeat) {
-          if (nested && dlvKey) {
+          if (nesting && dlvKey) {
             dset(result, dlvKey, newValue);
           } else {
             result[newKey] = newValue;
@@ -140,7 +140,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           if ((currentValue as unknown[]).pop) {
             (currentValue as unknown[]).push(newValue);
           } else {
-            if (nested && dlvKey) {
+            if (nesting && dlvKey) {
               dset(result, dlvKey, [currentValue, newValue]);
             } else {
               result[newKey] = [currentValue, newValue];
