@@ -13,6 +13,9 @@ export function getDeepValue(obj: unknown, keys: PropertyKey[]): unknown {
 
 const MAX_DEPTH = 20;
 const strBracketPair = '[]';
+const strBracketLeft = '[';
+const strBracketRight = ']';
+const strDot = '.';
 
 export type KeyValuePair = [PropertyKey, unknown];
 
@@ -27,8 +30,10 @@ function walkNestedValues(
   const {
     nestingSyntax = defaultOptions.nestingSyntax,
     arrayRepeat = defaultOptions.arrayRepeat,
-    arrayRepeatSyntax = defaultOptions.arrayRepeatSyntax
+    arrayRepeatSyntax = defaultOptions.arrayRepeatSyntax,
+    nested = defaultOptions.nested
   } = options;
+
   if (depth > MAX_DEPTH) {
     return;
   }
@@ -43,25 +48,31 @@ function walkNestedValues(
           path += strBracketPair;
         }
       } else if (nestingSyntax === 'dot') {
-        path += '.';
+        path += strDot;
         path += key;
       } else {
-        path += '[';
+        path += strBracketLeft;
         path += key;
-        path += ']';
+        path += strBracketRight;
       }
     } else {
       path = key;
     }
 
-    if (typeof value === 'object' && value !== null) {
+    const probableArray = (value as unknown[]).pop !== undefined;
+
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      (nested || (arrayRepeat && probableArray))
+    ) {
       walkNestedValues(
         value as Record<PropertyKey, unknown>,
         options,
         out,
         depth + 1,
         path,
-        arrayRepeat && Array.isArray(value)
+        arrayRepeat && probableArray
       );
     } else {
       out.push([path, value]);
