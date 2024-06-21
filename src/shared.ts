@@ -24,7 +24,7 @@ export type DeserializeKeyFunction = (
   key: string
 ) => PropertyKey | typeof CONTINUE;
 
-export interface ParseOptions {
+export interface Options {
   // Enable parsing nested objects and arrays
   // default: true
   nested: boolean;
@@ -50,3 +50,15 @@ export interface ParseOptions {
   valueDeserializer: DeserializeValueFunction;
   keyDeserializer: DeserializeKeyFunction;
 }
+
+const identityFunc = <T>(v: T): T => v;
+
+export const defaultOptions: Options = {
+  nested: true,
+  nestingSyntax: 'dot',
+  arrayRepeat: false,
+  arrayRepeatSyntax: 'repeat',
+  delimiter: 38,
+  valueDeserializer: identityFunc,
+  keyDeserializer: identityFunc
+};
