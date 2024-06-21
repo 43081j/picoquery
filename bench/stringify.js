@@ -1,18 +1,12 @@
 import {Bench} from 'tinybench';
-import {parse} from '../lib/main.js';
-import {parse as fastParse} from 'fast-querystring';
-import {parse as qsParse} from 'qs';
+import {stringify} from '../lib/main.js';
+import {stringify as fastStringify} from 'fast-querystring';
+import {stringify as qsStringify} from 'qs';
 
 const suites = [
   {
     name: 'Basic (no nesting)',
-    inputs: [
-      'foo=bar',
-      'foo=123&bar=456',
-      'foo.bar=123&baz=456',
-      'foo=123&bar=456&foo=123',
-      'foo.bar.baz=woof'
-    ],
+    inputs: [{foo: 'x', bar: 'y', baz: 'z'}],
     options: {
       qs: {allowDots: false},
       pico: {nested: false}
@@ -21,10 +15,15 @@ const suites = [
   {
     name: 'Dot-syntax nesting',
     inputs: [
-      'foo=bar',
-      'foo=123&bar=456',
-      'foo.bar=123&baz=456',
-      'foo.bar.baz=woof'
+      {
+        foo: {
+          bar0: 'x',
+          bar1: {
+            baz0: 'y',
+            baz1: 'z'
+          }
+        }
+      }
     ],
     options: {
       qs: {allowDots: true},
@@ -34,11 +33,15 @@ const suites = [
   {
     name: 'Index-syntax nesting',
     inputs: [
-      'foo=bar',
-      'foo=bar&bar=baz',
-      'foo[bar]=baz',
-      'some[deeply][nested][key]=value',
-      'foo[foo]=a&bar[bar]=b'
+      {
+        foo: {
+          bar0: 'x',
+          bar1: {
+            baz0: 'y',
+            baz1: 'z'
+          }
+        }
+      }
     ],
     options: {
       qs: {allowDots: false},
@@ -47,11 +50,7 @@ const suites = [
   },
   {
     name: 'Custom delimiter',
-    inputs: [
-      'foo=a;bar=b',
-      'foo=a',
-      'foo=a;bar=b;baz=c'
-    ],
+    inputs: [{foo: 'a', bar: 'b', baz: 'c'}],
     options: {
       qs: {delimiter: ';'},
       pico: {nested: false, delimiter: ';'}
@@ -59,22 +58,14 @@ const suites = [
   },
   {
     name: 'Bracket-style arrays',
-    inputs: [
-      'foo[]=a&foo[]=b',
-      'foo=a&bar[]=b&baz=c&bar[]=b',
-      'foo=bar'
-    ],
+    inputs: [{foo: ['a', 'b', 'c'], bar: 'y'}],
     options: {
       pico: {arrayRepeat: true, arrayRepeatSyntax: 'bracket'}
     }
   },
   {
     name: 'Repeat-style arrays',
-    inputs: [
-      'foo=a&foo=b',
-      'foo=a&bar=b&baz=c&bar=b',
-      'foo=bar'
-    ],
+    inputs: [{foo: ['a', 'b', 'c'], bar: 'y'}],
     options: {
       pico: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
     }
@@ -87,17 +78,17 @@ for (const suite of suites) {
   bench
     .add('picoquery', () => {
       for (const input of suite.inputs) {
-        parse(input, suite.options?.pico);
+        stringify(input, suite.options?.pico);
       }
     })
     .add('qs', () => {
       for (const input of suite.inputs) {
-        qsParse(input, suite.options?.qs);
+        qsStringify(input, suite.options?.qs);
       }
     })
     .add('fast-querystring (no nesting)', () => {
       for (const input of suite.inputs) {
-        fastParse(input);
+        fastStringify(input);
       }
     });
 
@@ -108,5 +99,3 @@ for (const suite of suites) {
 
   console.table(bench.table());
 }
-
-setInterval(() => {}, 5000);

@@ -1,7 +1,8 @@
 import {
-  type ParseOptions,
+  type Options,
   type DeserializeKeyFunction,
-  type DeserializeValueFunction
+  type DeserializeValueFunction,
+  defaultOptions
 } from './shared.js';
 import fastDecode from 'fast-decode-uri-component';
 import {dset} from 'dset';
@@ -9,7 +10,7 @@ import {getDeepValue} from './object-util.js';
 import {splitByIndexPattern} from './string-util.js';
 
 export type ParsedQuery = Record<PropertyKey, unknown>;
-export type UserParseOptions = Partial<ParseOptions>;
+export type ParseOptions = Partial<Options>;
 
 export const numberKeyDeserializer: DeserializeKeyFunction = (key) => {
   const asNumber = Number(key);
@@ -27,18 +28,6 @@ export const numberValueDeserializer: DeserializeValueFunction = (value) => {
   return value;
 };
 
-const identityFunc = <T>(v: T): T => v;
-
-const defaultOptions: ParseOptions = {
-  nested: true,
-  nestingSyntax: 'dot',
-  arrayRepeat: false,
-  arrayRepeatSyntax: 'repeat',
-  delimiter: 38,
-  valueDeserializer: identityFunc,
-  keyDeserializer: identityFunc
-};
-
 const regexPlus = /\+/g;
 const Empty = function () {} as unknown as {new (): ParsedQuery};
 Empty.prototype = Object.create(null);
@@ -48,7 +37,7 @@ Empty.prototype = Object.create(null);
  * @param {string} input
  * @param {ParseOptions=} options
  */
-export function parse(input: string, options?: UserParseOptions): ParsedQuery {
+export function parse(input: string, options?: ParseOptions): ParsedQuery {
   const {
     valueDeserializer = defaultOptions.valueDeserializer,
     keyDeserializer = defaultOptions.keyDeserializer,

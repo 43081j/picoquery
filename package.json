@@ -12,8 +12,9 @@
     "build": "tsc",
     "test": "npm run build && c8 node --test",
     "lint": "eslint src",
-    "format": "prettier --write src",
-    "bench": "node ./bench/main.js",
+    "format": "prettier --write src bench",
+    "bench:parse": "node ./bench/parse.js",
+    "bench:stringify": "node ./bench/stringify.js",
     "prepare": "npm run build"
   },
   "repository": {
