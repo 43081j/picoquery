@@ -23,4 +23,8 @@ test('splitByIndexPattern', async (t) => {
   await t.test('ignores nonsensical square brackets', () => {
     assert.deepEqual(splitByIndexPattern('foo[bar'), ['foo[bar']);
   });
+
+  await t.test('handles trailing text', () => {
+    assert.deepEqual(splitByIndexPattern('foo[bar]baz'), ['foo', 'bar', 'baz']);
+  });
 });

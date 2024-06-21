@@ -5,7 +5,7 @@ import {
 } from './shared.js';
 import fastDecode from 'fast-decode-uri-component';
 import {dset} from 'dset';
-import dlv from 'dlv';
+import {getDeepValue} from './object-util.js';
 import {splitByIndexPattern} from './string-util.js';
 
 export type ParsedQuery = Record<PropertyKey, unknown>;
@@ -137,7 +137,7 @@ export function parse(input: string, options?: UserParseOptions): ParsedQuery {
         }
 
         const currentValue =
-          nested && dlvKey ? dlv(result, dlvKey) : result[newKey];
+          nested && dlvKey ? getDeepValue(result, dlvKey) : result[newKey];
 
         if (currentValue === undefined || !arrayRepeat) {
           if (nested && dlvKey) {
