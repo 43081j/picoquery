@@ -66,7 +66,7 @@ The default options are as follows:
 
 ```ts
 {
-  nested: true,
+  nesting: true,
   nestingSyntax: 'dot',
   arrayRepeat: false,
   arrayRepeatSyntax: 'repeat',
@@ -74,14 +74,14 @@ The default options are as follows:
 }
 ```
 
-### `nested`
+### `nesting`
 
 When true, nested objects are supported.
 
 For example, when parsing:
 
 ```ts
-parse('foo.bar=baz', {nested: true});
+parse('foo.bar=baz', {nesting: true});
 
 // {foo: {bar: 'baz'}}
 ```
@@ -89,7 +89,7 @@ parse('foo.bar=baz', {nested: true});
 When stringifying:
 
 ```ts
-stringify({foo: {bar: 'baz'}}, {nested: true});
+stringify({foo: {bar: 'baz'}}, {nesting: true});
 
 // foo.bar=baz
 ```
@@ -97,10 +97,10 @@ stringify({foo: {bar: 'baz'}}, {nested: true});
 This also results in arrays being supported:
 
 ```ts
-parse('foo.0=bar', {nested: true});
+parse('foo.0=bar', {nesting: true});
 // {foo: ['bar']}
 
-stringify({foo: ['bar']}, {nested: true});
+stringify({foo: ['bar']}, {nesting: true});
 // foo.0=bar
 ```
 
