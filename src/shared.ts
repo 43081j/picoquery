@@ -10,19 +10,14 @@ export type NestingSyntax =
   // `foo[bar]`
   | 'index';
 
-// This is a special return value for deserializers and serializers, to tell the library
-// to fall back to using the default (de)serialize function.
-// We can't just return `null` or `undefined` etc, because we may want to deserialize to that
-export const CONTINUE = Symbol('continue');
-
 export type DeserializeValueFunction = (
   value: string,
   key: string
-) => unknown | typeof CONTINUE;
+) => unknown;
 
 export type DeserializeKeyFunction = (
   key: string
-) => PropertyKey | typeof CONTINUE;
+) => PropertyKey;
 
 export interface Options {
   // Enable parsing nested objects and arrays
