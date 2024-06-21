@@ -67,6 +67,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
   let shouldDecodeValue = false;
   let keyHasPlus = false;
   let valueHasPlus = false;
+  let keyHasDot = false;
   let hasBothKeyValuePair = false;
   let c = 0;
   let arrayRepeatBracketIndex = -1;
@@ -121,7 +122,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           if (nestingSyntax === 'index') {
             dlvKey = splitByIndexPattern(newKey);
           } else {
-            dlvKey = newKey.indexOf('.') > -1 ? newKey.split('.') : [newKey];
+            dlvKey = keyHasDot ? newKey.split('.') : [newKey];
           }
         }
 
@@ -155,6 +156,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
       shouldDecodeKey = false;
       shouldDecodeValue = false;
       keyHasPlus = false;
+      keyHasDot = false;
       valueHasPlus = false;
       arrayRepeatBracketIndex = -1;
     } else if (c === 93) {
@@ -163,6 +165,12 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         if (input.charCodeAt(prevIndex) === 91) {
           arrayRepeatBracketIndex = prevIndex;
         }
+      }
+    }
+    // Check '.'
+    else if (c === 46) {
+      if (equalityIndex <= startingIndex) {
+        keyHasDot = true;
       }
     }
     // Check '='
