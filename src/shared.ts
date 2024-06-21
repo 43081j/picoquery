@@ -30,7 +30,7 @@ export interface ParseOptions {
   nested: boolean;
 
   // Nesting syntax
-  // default: "index"
+  // default: "dot"
   nestingSyntax: NestingSyntax;
 
   // Whether repeated keys should result in arrays
