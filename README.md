@@ -1,5 +1,8 @@
 # picoquery
 
+[![CI](https://github.com/43081j/picoquery/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/43081j/picoquery/actions/workflows/main.yml)
+[![NPM version](https://img.shields.io/npm/v/picoquery.svg?style=flat)](https://www.npmjs.com/package/picoquery)
+
 A lightweight query string parser/stringifier with support for nesting and some
 configurability.
 
