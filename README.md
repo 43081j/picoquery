@@ -14,6 +14,14 @@ Built on top of [fast-querystring](https://github.com/anonrig/fast-querystring).
 npm i -S picoquery
 ```
 
+### CommonJS vs ESM
+
+`2.x` and above are _ESM only_ (i.e. your project will need `type: "module"`
+in the `package.json`).
+
+If you cannot yet move to ESM, you may continue to use `1.x` which will still
+receive non-breaking changes, backported from `main`.
+
 ## Usage
 
 Parsing a query string:
