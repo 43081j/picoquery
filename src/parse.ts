@@ -5,8 +5,7 @@ import {
   defaultOptions
 } from './shared.js';
 import fastDecode from 'fast-decode-uri-component';
-import {dset} from 'dset';
-import {getDeepValue} from './object-util.js';
+import {getDeepValue, setDeepValue} from './object-util.js';
 
 export type ParsedQuery = Record<PropertyKey, unknown>;
 export type ParseOptions = Partial<Options>;
@@ -147,7 +146,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
 
         if (currentValue === undefined || !arrayRepeat) {
           if (hasNestedKey) {
-            dset(result, keyPath as string[], newValue);
+            setDeepValue(result, keyPath, newValue);
           } else {
             result[lastKeyPathPart] = newValue;
           }
@@ -157,7 +156,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
             (currentValue as unknown[]).push(newValue);
           } else {
             if (hasNestedKey) {
-              dset(result, keyPath as string[], [currentValue, newValue]);
+              setDeepValue(result, keyPath, [currentValue, newValue]);
             } else {
               result[lastKeyPathPart] = [currentValue, newValue];
             }

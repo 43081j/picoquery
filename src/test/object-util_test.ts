@@ -1,6 +1,6 @@
 import * as assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {getDeepValue, getNestedValues} from '../object-util.js';
+import {getDeepValue, getNestedValues, setDeepValue} from '../object-util.js';
 
 test('getDeepValue', async (t) => {
   await t.test('retrieves by single key', () => {
@@ -48,6 +48,90 @@ test('getDeepValue', async (t) => {
       prop: 'foo'
     };
     assert.equal(getDeepValue(obj, ['prop', 'length']), 3);
+  });
+});
+
+const disallowedKeys = ['__proto__', 'constructor', 'prototype'];
+
+test('setDeepValue', async (t) => {
+  for (const key of disallowedKeys) {
+    await t.test(`cannot set ${key}`, () => {
+      const obj = {};
+      setDeepValue(obj, [key], 123);
+      assert.deepEqual(obj, {});
+    });
+
+    await t.test('cannot set proto deeply', () => {
+      const obj = {foo: {}};
+      setDeepValue(obj, ['foo', key], 123);
+      assert.deepEqual(obj, {foo: {}});
+    });
+  }
+
+  await t.test('sets top level key', () => {
+    const obj: Record<PropertyKey, unknown> = {};
+    setDeepValue(obj, ['foo'], 303);
+    assert.deepEqual(obj, {foo: 303});
+  });
+
+  await t.test('sets deep key', () => {
+    const obj: Record<PropertyKey, unknown> = {foo: {}};
+    setDeepValue(obj, ['foo', 'bar'], 303);
+    assert.deepEqual(obj, {foo: {bar: 303}});
+  });
+
+  await t.test('replaces null object value with object', () => {
+    const obj: Record<PropertyKey, unknown> = {foo: null};
+    setDeepValue(obj, ['foo', 'bar'], 303);
+    assert.deepEqual(obj, {
+      foo: {
+        bar: 303
+      }
+    });
+  });
+
+  await t.test('replaces null array value with array', () => {
+    const obj: Record<PropertyKey, unknown> = {foo: null};
+    setDeepValue(obj, ['foo', 0], 303);
+    assert.deepEqual(obj, {
+      foo: [303]
+    });
+  });
+
+  await t.test('creates new objects for object values', () => {
+    const obj: Record<PropertyKey, unknown> = {};
+    setDeepValue(obj, ['foo', 'bar'], 303);
+    assert.deepEqual(obj, {
+      foo: {
+        bar: 303
+      }
+    });
+  });
+
+  await t.test('creates new arrays for array values', () => {
+    const obj: Record<PropertyKey, unknown> = {};
+    setDeepValue(obj, ['foo', 0], 303);
+    assert.deepEqual(obj, {
+      foo: [303]
+    });
+  });
+
+  await t.test('creates new arrays with string indices', () => {
+    const obj: Record<PropertyKey, unknown> = {};
+    setDeepValue(obj, ['foo', '0'], 303);
+    assert.deepEqual(obj, {
+      foo: [303]
+    });
+  });
+
+  await t.test('treats decimal strings as regular keys', () => {
+    const obj: Record<PropertyKey, unknown> = {};
+    setDeepValue(obj, ['foo', '10.0'], 303);
+    assert.deepEqual(obj, {
+      foo: {
+        '10.0': 303
+      }
+    });
   });
 });
 
