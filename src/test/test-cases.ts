@@ -177,6 +177,12 @@ export const testCases: TestCase[] = [
     output: {foo: {bar: {baz: 'dwa'}}},
     options: {nesting: true, nestingSyntax: 'index'}
   },
+  {
+    input: 'foo[bar=trzy',
+    stringifyOutput: 'foo%5Bbar%5D=trzy',
+    output: {foo: {bar: 'trzy'}},
+    options: {nesting: true, nestingSyntax: 'index'}
+  },
 
   // Nesting syntax: dot
   {

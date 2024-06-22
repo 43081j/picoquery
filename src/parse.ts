@@ -7,7 +7,6 @@ import {
 import fastDecode from 'fast-decode-uri-component';
 import {dset} from 'dset';
 import {getDeepValue} from './object-util.js';
-import {splitByIndexPattern} from './string-util.js';
 
 export type ParsedQuery = Record<PropertyKey, unknown>;
 export type ParseOptions = Partial<Options>;
@@ -31,6 +30,26 @@ export const numberValueDeserializer: DeserializeValueFunction = (value) => {
 const regexPlus = /\+/g;
 const Empty = function () {} as unknown as {new (): ParsedQuery};
 Empty.prototype = Object.create(null);
+
+function computeKeySlice(
+  input: string,
+  startIndex: number,
+  endIndex: number,
+  keyHasPlus: boolean,
+  shouldDecodeKey: boolean
+): string {
+  let chunk = input.substring(startIndex, endIndex);
+
+  if (keyHasPlus) {
+    chunk = chunk.replace(regexPlus, ' ');
+  }
+
+  if (shouldDecodeKey) {
+    chunk = fastDecode(chunk) || chunk;
+  }
+
+  return chunk;
+}
 
 /**
  * Parses a query string into an object
@@ -59,15 +78,17 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
   }
 
   const inputLength = input.length;
-  let key = '';
   let value = '';
   let startingIndex = -1;
   let equalityIndex = -1;
+  let keySeparatorIndex = -1;
+  let keyPath: PropertyKey[] = [];
+  let lastKeyPathPart: PropertyKey = '';
+  let keyChunk = '';
   let shouldDecodeKey = false;
   let shouldDecodeValue = false;
   let keyHasPlus = false;
   let valueHasPlus = false;
-  let keyHasDot = false;
   let hasBothKeyValuePair = false;
   let c = 0;
   let arrayRepeatBracketIndex = -1;
@@ -85,23 +106,23 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         equalityIndex = i;
       }
 
-      key = input.slice(
-        startingIndex + 1,
-        arrayRepeatBracketIndex > -1 ? arrayRepeatBracketIndex : equalityIndex
-      );
+      if (keySeparatorIndex !== equalityIndex - 1) {
+        keyChunk = computeKeySlice(
+          input,
+          keySeparatorIndex + 1,
+          arrayRepeatBracketIndex > -1
+            ? arrayRepeatBracketIndex
+            : equalityIndex,
+          keyHasPlus,
+          shouldDecodeKey
+        );
+
+        lastKeyPathPart = keyDeserializer(keyChunk);
+        keyPath.push(lastKeyPathPart);
+      }
 
       // Add key/value pair only if the range size is greater than 1; a.k.a. contains at least "="
-      if (hasBothKeyValuePair || key.length > 0) {
-        // Optimization: Replace '+' with space
-        if (keyHasPlus) {
-          key = key.replace(regexPlus, ' ');
-        }
-
-        // Optimization: Do not decode if it's not necessary.
-        if (shouldDecodeKey) {
-          key = fastDecode(key) || key;
-        }
-
+      if (hasBothKeyValuePair || keyPath.length > 0) {
         if (hasBothKeyValuePair) {
           value = input.slice(equalityIndex + 1, i);
 
@@ -114,36 +135,31 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           }
         }
 
-        const newValue = valueDeserializer(value, key);
-        const newKey = keyDeserializer(key);
-        let dlvKey;
+        const newValue = valueDeserializer(value, lastKeyPathPart);
+        const hasNestedKey = nesting && keyPath.length > 1;
+        let currentValue;
 
-        if (typeof newKey === 'string' && nesting) {
-          if (nestingSyntax === 'index') {
-            dlvKey = splitByIndexPattern(newKey);
-          } else {
-            dlvKey = keyHasDot ? newKey.split('.') : [newKey];
-          }
+        if (hasNestedKey) {
+          currentValue = getDeepValue(result, keyPath);
+        } else {
+          currentValue = result[lastKeyPathPart];
         }
 
-        const currentValue =
-          nesting && dlvKey ? getDeepValue(result, dlvKey) : result[newKey];
-
         if (currentValue === undefined || !arrayRepeat) {
-          if (nesting && dlvKey) {
-            dset(result, dlvKey, newValue);
+          if (hasNestedKey) {
+            dset(result, keyPath as string[], newValue);
           } else {
-            result[newKey] = newValue;
+            result[lastKeyPathPart] = newValue;
           }
         } else if (arrayRepeat) {
           // Optimization: value.pop is faster than Array.isArray(value)
           if ((currentValue as unknown[]).pop) {
             (currentValue as unknown[]).push(newValue);
           } else {
-            if (nesting && dlvKey) {
-              dset(result, dlvKey, [currentValue, newValue]);
+            if (hasNestedKey) {
+              dset(result, keyPath as string[], [currentValue, newValue]);
             } else {
-              result[newKey] = [currentValue, newValue];
+              result[lastKeyPathPart] = [currentValue, newValue];
             }
           }
         }
@@ -156,21 +172,88 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
       shouldDecodeKey = false;
       shouldDecodeValue = false;
       keyHasPlus = false;
-      keyHasDot = false;
       valueHasPlus = false;
       arrayRepeatBracketIndex = -1;
-    } else if (c === 93) {
+      keySeparatorIndex = i;
+      keyPath = [];
+      lastKeyPathPart = '';
+    }
+    // Check ']'
+    else if (c === 93) {
       if (arrayRepeat && arrayRepeatSyntax === 'bracket') {
         const prevIndex = i - 1;
         if (input.charCodeAt(prevIndex) === 91) {
           arrayRepeatBracketIndex = prevIndex;
         }
       }
+
+      if (
+        nesting &&
+        nestingSyntax === 'index' &&
+        equalityIndex <= startingIndex
+      ) {
+        keyChunk = computeKeySlice(
+          input,
+          keySeparatorIndex + 1,
+          i,
+          keyHasPlus,
+          shouldDecodeKey
+        );
+
+        lastKeyPathPart = keyDeserializer(keyChunk);
+        keyPath.push(lastKeyPathPart);
+
+        keySeparatorIndex = i;
+        keyHasPlus = false;
+        shouldDecodeKey = false;
+      }
     }
     // Check '.'
     else if (c === 46) {
-      if (equalityIndex <= startingIndex) {
-        keyHasDot = true;
+      if (
+        nesting &&
+        nestingSyntax === 'dot' &&
+        equalityIndex <= startingIndex
+      ) {
+        keyChunk = computeKeySlice(
+          input,
+          keySeparatorIndex + 1,
+          i,
+          keyHasPlus,
+          shouldDecodeKey
+        );
+
+        lastKeyPathPart = keyDeserializer(keyChunk);
+        keyPath.push(lastKeyPathPart);
+
+        keySeparatorIndex = i;
+        keyHasPlus = false;
+        shouldDecodeKey = false;
+      }
+    }
+    // Check '['
+    else if (c === 91) {
+      if (
+        nesting &&
+        nestingSyntax === 'index' &&
+        equalityIndex <= startingIndex
+      ) {
+        if (keySeparatorIndex !== i - 1) {
+          keyChunk = computeKeySlice(
+            input,
+            keySeparatorIndex + 1,
+            i,
+            keyHasPlus,
+            shouldDecodeKey
+          );
+
+          lastKeyPathPart = keyDeserializer(keyChunk);
+          keyPath.push(lastKeyPathPart);
+          keyHasPlus = false;
+          shouldDecodeKey = false;
+        }
+
+        keySeparatorIndex = i;
       }
     }
     // Check '='

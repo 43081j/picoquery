@@ -10,7 +10,10 @@ export type NestingSyntax =
   // `foo[bar]`
   | 'index';
 
-export type DeserializeValueFunction = (value: string, key: string) => unknown;
+export type DeserializeValueFunction = (
+  value: string,
+  key: PropertyKey
+) => unknown;
 
 export type DeserializeKeyFunction = (key: string) => PropertyKey;
 
