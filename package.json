@@ -1,7 +1,6 @@
 {
   "name": "picoquery",
   "version": "0.0.0-dev",
-  "type": "module",
   "description": "A small library for parsing and serialisation query strings",
   "main": "lib/main.js",
   "files": [
