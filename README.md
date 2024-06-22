@@ -151,7 +151,8 @@ stringify({foo: 'x', bar: 'y'}, {delimiter: ';'});
 Can be set to a function which will be used to deserialize each value during
 parsing.
 
-It will be called with the `value` and the `key` (i.e. `(value, key) => *`).
+It will be called with the `value` and the already deserialized
+`key` (i.e. `(value: string, key: PropertyKey) => *`).
 
 For example:
 
@@ -185,6 +186,59 @@ parse('300=foo', {
 });
 
 // {300: 'foo'}
+```
+
+## Benchmarks
+
+**IMPORTANT**: there are a few things to take into account with these
+benchmarks:
+
+- `fast-querystring` is not capable of parsing or stringifying nested objects,
+so the results are incomparible (but here as reference)
+- all libraries have their own level of configurability. It will be possible
+to increase perf in each of them by disabling various features, but these are
+just the 'happy path'
+
+### Parse
+
+```
+Benchmark: Basic (no nesting)
+┌─────────┬─────────────────────────────────┬─────────────┬────────────────────┬──────────┬─────────┐
+│ (index) │ Task Name                       │ ops/sec     │ Average Time (ns)  │ Margin   │ Samples │
+├─────────┼─────────────────────────────────┼─────────────┼────────────────────┼──────────┼─────────┤
+│ 0       │ 'picoquery'                     │ '2,088,510' │ 478.8101442558084  │ '±1.24%' │ 1044256 │
+│ 1       │ 'qs'                            │ '404,952'   │ 2469.4269571359787 │ '±0.58%' │ 202477  │
+│ 2       │ 'fast-querystring (no nesting)' │ '2,673,291' │ 374.07067091817515 │ '±0.17%' │ 1336646 │
+└─────────┴─────────────────────────────────┴─────────────┴────────────────────┴──────────┴─────────┘
+Benchmark: Dot-syntax nesting
+┌─────────┬─────────────────────────────────┬─────────────┬───────────────────┬──────────┬─────────┐
+│ (index) │ Task Name                       │ ops/sec     │ Average Time (ns) │ Margin   │ Samples │
+├─────────┼─────────────────────────────────┼─────────────┼───────────────────┼──────────┼─────────┤
+│ 0       │ 'picoquery'                     │ '1,311,689' │ 762.3752984694953 │ '±0.61%' │ 655846  │
+│ 1       │ 'qs'                            │ '204,369'   │ 4893.105514508282 │ '±4.32%' │ 102185  │
+│ 2       │ 'fast-querystring (no nesting)' │ '2,703,468' │ 369.8951402599062 │ '±0.52%' │ 1351739 │
+└─────────┴─────────────────────────────────┴─────────────┴───────────────────┴──────────┴─────────┘
+```
+
+### Stringify
+
+```
+Benchmark: Basic (no nesting)
+┌─────────┬─────────────────────────────────┬─────────────┬───────────────────┬──────────┬─────────┐
+│ (index) │ Task Name                       │ ops/sec     │ Average Time (ns) │ Margin   │ Samples │
+├─────────┼─────────────────────────────────┼─────────────┼───────────────────┼──────────┼─────────┤
+│ 0       │ 'picoquery'                     │ '3,173,165' │ 315.142724962959  │ '±1.00%' │ 1586583 │
+│ 1       │ 'qs'                            │ '874,512'   │ 1143.494080140431 │ '±0.67%' │ 437257  │
+│ 2       │ 'fast-querystring (no nesting)' │ '3,880,750' │ 257.6821177957498 │ '±0.22%' │ 1940376 │
+└─────────┴─────────────────────────────────┴─────────────┴───────────────────┴──────────┴─────────┘
+Benchmark: Dot-syntax nesting
+┌─────────┬─────────────────────────────────┬─────────────┬────────────────────┬──────────┬─────────┐
+│ (index) │ Task Name                       │ ops/sec     │ Average Time (ns)  │ Margin   │ Samples │
+├─────────┼─────────────────────────────────┼─────────────┼────────────────────┼──────────┼─────────┤
+│ 0       │ 'picoquery'                     │ '1,594,677' │ 627.0860926154869  │ '±0.67%' │ 797339  │
+│ 1       │ 'qs'                            │ '348,532'   │ 2869.1769746537816 │ '±3.81%' │ 174347  │
+│ 2       │ 'fast-querystring (no nesting)' │ '7,300,567' │ 136.97564903135648 │ '±2.05%' │ 3650286 │
+└─────────┴─────────────────────────────────┴─────────────┴────────────────────┴──────────┴─────────┘
 ```
 
 ## License

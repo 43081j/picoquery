@@ -9,7 +9,8 @@
     "!lib/test"
   ],
   "scripts": {
-    "build": "tsc",
+    "build:clean": "rimraf lib",
+    "build": "npm run build:clean && tsc",
     "test": "npm run build && c8 node --test",
     "lint": "eslint src",
     "format": "prettier --write src bench",
@@ -42,6 +43,7 @@
     "fast-querystring": "^1.1.2",
     "prettier": "^3.2.5",
     "qs": "^6.12.1",
+    "rimraf": "^5.0.7",
     "tinybench": "^2.8.0",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.7.1"
