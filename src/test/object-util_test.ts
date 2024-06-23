@@ -1,150 +1,62 @@
 import * as assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {getDeepValue, getNestedValues, setDeepValue} from '../object-util.js';
+import {stringifyObject, getDeepObject} from '../object-util.js';
 
-test('getDeepValue', async (t) => {
-  await t.test('retrieves by single key', () => {
-    const obj = {foo: 123};
-    assert.equal(getDeepValue(obj, ['foo']), 123);
+test('getDeepObject', async (t) => {
+  await t.test('object if string key', () => {
+    assert.deepEqual(getDeepObject({}, 'foo', 'bar'), {});
   });
 
-  await t.test('retrieves by deep key', () => {
-    const obj = {
-      a: {
-        b: {
-          c: {
-            d: 303
-          }
-        }
-      }
-    };
-    assert.equal(getDeepValue(obj, ['a', 'b', 'c', 'd']), 303);
+  await t.test('array if key parseable as number', () => {
+    assert.deepEqual(getDeepObject({}, 'foo', '1'), []);
   });
 
-  await t.test('undefined if part of key not found', () => {
-    const obj = {
-      a: {
-        b: {}
-      }
-    };
-    assert.equal(getDeepValue(obj, ['a', 'b', 'c', 'd']), undefined);
+  await t.test('array if key is number', () => {
+    assert.deepEqual(getDeepObject({}, 'foo', 5), []);
   });
 
-  await t.test('works with non-string keys', () => {
-    const key = Symbol();
-    const obj = {
-      [key]: 808
-    };
-    assert.equal(getDeepValue(obj, [key]), 808);
-  });
-
-  await t.test('returns root object if no keys', () => {
-    const obj = {};
-    assert.equal(getDeepValue(obj, []), obj);
-  });
-
-  await t.test('indexes into non-object values', () => {
-    const obj = {
-      prop: 'foo'
-    };
-    assert.equal(getDeepValue(obj, ['prop', 'length']), 3);
-  });
-});
-
-const disallowedKeys = ['__proto__', 'constructor', 'prototype'];
-
-test('setDeepValue', async (t) => {
-  for (const key of disallowedKeys) {
-    await t.test(`cannot set ${key}`, () => {
-      const obj = {};
-      setDeepValue(obj, [key], 123);
-      assert.deepEqual(obj, {});
+  await t.test('existing object if value last key already exists', () => {
+    assert.deepEqual(getDeepObject({foo: {bar: true}}, 'foo', 'baz'), {
+      bar: true
     });
+  });
 
-    await t.test('cannot set proto deeply', () => {
-      const obj = {foo: {}};
-      setDeepValue(obj, ['foo', key], 123);
-      assert.deepEqual(obj, {foo: {}});
+  const disallowedNames = ['__proto__', 'constructor', 'prototype'];
+
+  for (const name of disallowedNames) {
+    await t.test(`setting disallowed ${name} returns object as-is`, () => {
+      assert.deepEqual(getDeepObject({foo: 'bar'}, name, 'foo'), {foo: 'bar'});
     });
   }
 
-  await t.test('sets top level key', () => {
-    const obj: Record<PropertyKey, unknown> = {};
-    setDeepValue(obj, ['foo'], 303);
-    assert.deepEqual(obj, {foo: 303});
-  });
-
-  await t.test('sets deep key', () => {
-    const obj: Record<PropertyKey, unknown> = {foo: {}};
-    setDeepValue(obj, ['foo', 'bar'], 303);
-    assert.deepEqual(obj, {foo: {bar: 303}});
-  });
-
-  await t.test('replaces null object value with object', () => {
-    const obj: Record<PropertyKey, unknown> = {foo: null};
-    setDeepValue(obj, ['foo', 'bar'], 303);
-    assert.deepEqual(obj, {
-      foo: {
-        bar: 303
-      }
+  await t.test('can key into existing sub-object', () => {
+    assert.deepEqual(getDeepObject({foo: {bar: 'baz'}}, 'foo', ''), {
+      bar: 'baz'
     });
   });
 
-  await t.test('replaces null array value with array', () => {
-    const obj: Record<PropertyKey, unknown> = {foo: null};
-    setDeepValue(obj, ['foo', 0], 303);
-    assert.deepEqual(obj, {
-      foo: [303]
-    });
+  await t.test('replaces null with new object', () => {
+    assert.deepEqual(getDeepObject({foo: null}, 'foo', 'bar'), {});
   });
 
-  await t.test('creates new objects for object values', () => {
-    const obj: Record<PropertyKey, unknown> = {};
-    setDeepValue(obj, ['foo', 'bar'], 303);
-    assert.deepEqual(obj, {
-      foo: {
-        bar: 303
-      }
-    });
+  await t.test('treats decimals as object keys', () => {
+    assert.deepEqual(getDeepObject({}, 'foo', '1.5'), {});
   });
 
-  await t.test('creates new arrays for array values', () => {
-    const obj: Record<PropertyKey, unknown> = {};
-    setDeepValue(obj, ['foo', 0], 303);
-    assert.deepEqual(obj, {
-      foo: [303]
-    });
-  });
-
-  await t.test('creates new arrays with string indices', () => {
-    const obj: Record<PropertyKey, unknown> = {};
-    setDeepValue(obj, ['foo', '0'], 303);
-    assert.deepEqual(obj, {
-      foo: [303]
-    });
-  });
-
-  await t.test('treats decimal strings as regular keys', () => {
-    const obj: Record<PropertyKey, unknown> = {};
-    setDeepValue(obj, ['foo', '10.0'], 303);
-    assert.deepEqual(obj, {
-      foo: {
-        '10.0': 303
-      }
-    });
+  await t.test('mutates original object', () => {
+    const obj = {};
+    getDeepObject(obj, 'foo', 'bar');
+    assert.deepEqual(obj, {foo: {}});
   });
 });
 
-test('getNestedValues', async (t) => {
+test('stringifyObject', async (t) => {
   await t.test('shallow values', () => {
     const obj = {
       a: 'foo',
       b: 'bar'
     };
-    assert.deepEqual(getNestedValues(obj, {nestingSyntax: 'dot'}), [
-      ['a', 'foo'],
-      ['b', 'bar']
-    ]);
+    assert.equal(stringifyObject(obj, {nestingSyntax: 'dot'}), 'a=foo&b=bar');
   });
 
   await t.test('deep values', () => {
@@ -155,9 +67,7 @@ test('getNestedValues', async (t) => {
         }
       }
     };
-    assert.deepEqual(getNestedValues(obj, {nestingSyntax: 'dot'}), [
-      ['a.b.c', 'foo']
-    ]);
+    assert.deepEqual(stringifyObject(obj, {nestingSyntax: 'dot'}), 'a.b.c=foo');
   });
 
   await t.test('mixed deep and shallow values', () => {
@@ -173,12 +83,10 @@ test('getNestedValues', async (t) => {
         d1: 'foo'
       }
     };
-    assert.deepEqual(getNestedValues(obj, {nestingSyntax: 'dot'}), [
-      ['a', 'foo'],
-      ['b.b1.b2', 'foo'],
-      ['c', 'foo'],
-      ['d.d1', 'foo']
-    ]);
+    assert.deepEqual(
+      stringifyObject(obj, {nestingSyntax: 'dot'}),
+      'a=foo&b.b1.b2=foo&c=foo&d.d1=foo'
+    );
   });
 
   await t.test('deep values with multiple keys', () => {
@@ -188,20 +96,20 @@ test('getNestedValues', async (t) => {
         a2: 'bar'
       }
     };
-    assert.deepEqual(getNestedValues(obj, {nestingSyntax: 'dot'}), [
-      ['a.a1', 'foo'],
-      ['a.a2', 'bar']
-    ]);
+    assert.deepEqual(
+      stringifyObject(obj, {nestingSyntax: 'dot'}),
+      'a.a1=foo&a.a2=bar'
+    );
   });
 
   await t.test('simple array', () => {
     const obj = {
       a: ['foo', 'bar']
     };
-    assert.deepEqual(getNestedValues(obj, {nestingSyntax: 'dot'}), [
-      ['a.0', 'foo'],
-      ['a.1', 'bar']
-    ]);
+    assert.deepEqual(
+      stringifyObject(obj, {nestingSyntax: 'dot'}),
+      'a.0=foo&a.1=bar'
+    );
   });
 
   await t.test('array of objects', () => {
@@ -212,9 +120,7 @@ test('getNestedValues', async (t) => {
         }
       ]
     };
-    assert.deepEqual(getNestedValues(obj, {nestingSyntax: 'dot'}), [
-      ['a.0.b', 'foo']
-    ]);
+    assert.deepEqual(stringifyObject(obj, {nestingSyntax: 'dot'}), 'a.0.b=foo');
   });
 
   await t.test('simple index syntax', () => {
@@ -226,10 +132,10 @@ test('getNestedValues', async (t) => {
         }
       }
     };
-    assert.deepEqual(getNestedValues(obj, {nestingSyntax: 'index'}), [
-      ['a[a1]', 'foo'],
-      ['a[a2][a3]', 'foo']
-    ]);
+    assert.deepEqual(
+      stringifyObject(obj, {nestingSyntax: 'index'}),
+      'a%5Ba1%5D=foo&a%5Ba2%5D%5Ba3%5D=foo'
+    );
   });
 
   await t.test('handles circular references', () => {
@@ -242,7 +148,7 @@ test('getNestedValues', async (t) => {
     obj.foo.foo2 = obj;
 
     // as long as it doesn't hang forever, we're good
-    assert.ok(getNestedValues(obj, {nestingSyntax: 'dot'}));
+    assert.ok(stringifyObject(obj, {nestingSyntax: 'dot'}));
   });
 
   await t.test('repeated array values (repeat)', () => {
@@ -250,11 +156,8 @@ test('getNestedValues', async (t) => {
       foo: [1, 2]
     };
     assert.deepEqual(
-      getNestedValues(obj, {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}),
-      [
-        ['foo', 1],
-        ['foo', 2]
-      ]
+      stringifyObject(obj, {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}),
+      'foo=1&foo=2'
     );
   });
 
@@ -263,15 +166,12 @@ test('getNestedValues', async (t) => {
       foo: [1, 2]
     };
     assert.deepEqual(
-      getNestedValues(obj, {arrayRepeat: true, arrayRepeatSyntax: 'bracket'}),
-      [
-        ['foo[]', 1],
-        ['foo[]', 2]
-      ]
+      stringifyObject(obj, {arrayRepeat: true, arrayRepeatSyntax: 'bracket'}),
+      'foo%5B%5D=1&foo%5B%5D=2'
     );
   });
 
-  await t.test('null values result in empty set', () => {
-    assert.deepEqual(getNestedValues(null as unknown as object, {}), []);
+  await t.test('null values result in empty string', () => {
+    assert.deepEqual(stringifyObject({foo: null}, {}), 'foo=');
   });
 });

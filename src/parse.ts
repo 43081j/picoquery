@@ -1,3 +1,4 @@
+import {getDeepObject} from './object-util.js';
 import {
   type Options,
   type DeserializeKeyFunction,
@@ -5,7 +6,6 @@ import {
   defaultOptions
 } from './shared.js';
 import fastDecode from 'fast-decode-uri-component';
-import {getDeepValue, setDeepValue} from './object-util.js';
 
 export type ParsedQuery = Record<PropertyKey, unknown>;
 export type ParseOptions = Partial<Options>;
@@ -81,8 +81,9 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
   let startingIndex = -1;
   let equalityIndex = -1;
   let keySeparatorIndex = -1;
-  let keyPath: PropertyKey[] = [];
-  let lastKeyPathPart: PropertyKey = '';
+  let currentObj = result;
+  let lastKey: PropertyKey | undefined = undefined;
+  let currentKey: PropertyKey = '';
   let keyChunk = '';
   let shouldDecodeKey = false;
   let shouldDecodeValue = false;
@@ -116,12 +117,14 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           shouldDecodeKey
         );
 
-        lastKeyPathPart = keyDeserializer(keyChunk);
-        keyPath.push(lastKeyPathPart);
+        currentKey = keyDeserializer(keyChunk);
+        if (lastKey !== undefined) {
+          currentObj = getDeepObject(currentObj, lastKey, currentKey);
+        }
       }
 
       // Add key/value pair only if the range size is greater than 1; a.k.a. contains at least "="
-      if (hasBothKeyValuePair || keyPath.length > 0) {
+      if (hasBothKeyValuePair || currentKey !== '') {
         if (hasBothKeyValuePair) {
           value = input.slice(equalityIndex + 1, i);
 
@@ -134,32 +137,17 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           }
         }
 
-        const newValue = valueDeserializer(value, lastKeyPathPart);
-        const hasNestedKey = nesting && keyPath.length > 1;
-        let currentValue;
-
-        if (hasNestedKey) {
-          currentValue = getDeepValue(result, keyPath);
-        } else {
-          currentValue = result[lastKeyPathPart];
-        }
+        const newValue = valueDeserializer(value, currentKey);
+        const currentValue = currentObj[currentKey];
 
         if (currentValue === undefined || !arrayRepeat) {
-          if (hasNestedKey) {
-            setDeepValue(result, keyPath, newValue);
-          } else {
-            result[lastKeyPathPart] = newValue;
-          }
+          currentObj[currentKey] = newValue;
         } else if (arrayRepeat) {
           // Optimization: value.pop is faster than Array.isArray(value)
           if ((currentValue as unknown[]).pop) {
             (currentValue as unknown[]).push(newValue);
           } else {
-            if (hasNestedKey) {
-              setDeepValue(result, keyPath, [currentValue, newValue]);
-            } else {
-              result[lastKeyPathPart] = [currentValue, newValue];
-            }
+            currentObj[currentKey] = [currentValue, newValue];
           }
         }
       }
@@ -174,8 +162,9 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
       valueHasPlus = false;
       arrayRepeatBracketIndex = -1;
       keySeparatorIndex = i;
-      keyPath = [];
-      lastKeyPathPart = '';
+      currentObj = result;
+      lastKey = undefined;
+      currentKey = '';
     }
     // Check ']'
     else if (c === 93) {
@@ -199,8 +188,11 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           shouldDecodeKey
         );
 
-        lastKeyPathPart = keyDeserializer(keyChunk);
-        keyPath.push(lastKeyPathPart);
+        currentKey = keyDeserializer(keyChunk);
+        if (lastKey !== undefined) {
+          currentObj = getDeepObject(currentObj, lastKey, currentKey);
+        }
+        lastKey = currentKey;
 
         keySeparatorIndex = i;
         keyHasPlus = false;
@@ -222,8 +214,11 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           shouldDecodeKey
         );
 
-        lastKeyPathPart = keyDeserializer(keyChunk);
-        keyPath.push(lastKeyPathPart);
+        currentKey = keyDeserializer(keyChunk);
+        if (lastKey !== undefined) {
+          currentObj = getDeepObject(currentObj, lastKey, currentKey);
+        }
+        lastKey = currentKey;
 
         keySeparatorIndex = i;
         keyHasPlus = false;
@@ -246,8 +241,9 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
             shouldDecodeKey
           );
 
-          lastKeyPathPart = keyDeserializer(keyChunk);
-          keyPath.push(lastKeyPathPart);
+          currentKey = keyDeserializer(keyChunk);
+          lastKey = currentKey;
+
           keyHasPlus = false;
           shouldDecodeKey = false;
         }
