@@ -199,6 +199,44 @@ parse('300=foo', {
 // {300: 'foo'}
 ```
 
+### `valueSerializer`
+
+Can be set to a function which will be used to serialize each value during
+stringifying.
+
+It will be called with the `value` and the `key`
+(i.e. `(value: unknown, key: PropertyKey) => string`).
+
+For example:
+
+```ts
+stringify({foo: 'bar'}, {
+  valueSerializer: (val) => String(val) + String(val)
+});
+
+// foo=barbar
+```
+
+**Note** that you can import the default serializer if you only want to handle
+some cases.
+
+For example:
+
+```ts
+import {defaultValueSerializer, stringify} from 'picoquery';
+
+stringify({foo: 'bar'}, {
+  valueSerializer: (val, key) => {
+    if (val instanceof Date) {
+      return val.toISOString();
+    }
+
+    // Call the original serializer otherwise
+    return defaultValueSerializer(val, key);
+  }
+});
+```
+
 ## Benchmarks
 
 **IMPORTANT**: there are a few things to take into account with these

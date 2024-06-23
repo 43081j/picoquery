@@ -1,3 +1,5 @@
+import {encodeString} from './string-util.js';
+
 export type ArrayRepeatSyntax =
   // `foo[]=a&foo[]=b`
   | 'bracket'
@@ -15,7 +17,30 @@ export type DeserializeValueFunction = (
   key: PropertyKey
 ) => unknown;
 
+export type SerializeValueFunction = (
+  value: unknown,
+  key: PropertyKey
+) => string;
+
 export type DeserializeKeyFunction = (key: string) => PropertyKey;
+
+export function defaultValueSerializer(value: unknown): string {
+  switch (typeof value) {
+    case 'string':
+      // Length check is handled inside encodeString function
+      return encodeString(value);
+    case 'bigint':
+    case 'boolean':
+      return '' + value;
+    case 'number':
+      if (Number.isFinite(value)) {
+        return value < 1e21 ? '' + value : encodeString('' + value);
+      }
+      break;
+  }
+
+  return '';
+}
 
 export interface Options {
   // Enable parsing nested objects and arrays
@@ -42,6 +67,7 @@ export interface Options {
   // Custom deserializers
   valueDeserializer: DeserializeValueFunction;
   keyDeserializer: DeserializeKeyFunction;
+  valueSerializer: SerializeValueFunction;
 }
 
 const identityFunc = <T>(v: T): T => v;
@@ -53,5 +79,6 @@ export const defaultOptions: Options = {
   arrayRepeatSyntax: 'repeat',
   delimiter: 38,
   valueDeserializer: identityFunc,
+  valueSerializer: defaultValueSerializer,
   keyDeserializer: identityFunc
 };
