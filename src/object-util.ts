@@ -1,57 +1,32 @@
 import {type Options, defaultOptions} from './shared.js';
 
-export function getDeepValue(obj: unknown, keys: PropertyKey[]): unknown {
-  const keysLength = keys.length;
-  for (let i = 0; i < keysLength; i++) {
-    obj = (obj as Record<PropertyKey, unknown>)[keys[i]];
-    if (!obj) {
-      return obj;
-    }
-  }
-  return obj;
-}
-
 type KeyableObject = Record<PropertyKey, unknown>;
 
-export function setDeepValue(
-  obj: unknown,
-  keys: PropertyKey[],
-  val: unknown
-): void {
-  const len = keys.length;
-  const lastKey = len - 1;
-  let k;
-  let curr = obj as KeyableObject;
-  let currVal;
-  let nextKey;
+function isPrototypeKey(value: unknown) {
+  return (
+    value === '__proto__' || value === 'constructor' || value === 'prototype'
+  );
+}
 
-  for (let i = 0; i < len; i++) {
-    k = keys[i];
+export function getDeepObject(
+  obj: KeyableObject,
+  key: PropertyKey,
+  nextKey: PropertyKey
+): KeyableObject {
+  if (isPrototypeKey(key)) return obj;
 
-    if (k === '__proto__' || k === 'constructor' || k === 'prototype') {
-      break;
-    }
-
-    if (i === lastKey) {
-      curr[k] = val;
-    } else {
-      currVal = curr[k];
-      if (typeof currVal === 'object' && currVal !== null) {
-        curr = currVal as KeyableObject;
-      } else {
-        nextKey = keys[i + 1];
-        if (
-          typeof nextKey === 'string' &&
-          ((nextKey as unknown as number) * 0 !== 0 ||
-            nextKey.indexOf('.') > -1)
-        ) {
-          curr = curr[k] = {};
-        } else {
-          curr = curr[k] = [] as unknown as KeyableObject;
-        }
-      }
-    }
+  const currObj = obj[key] as KeyableObject;
+  if (typeof currObj === 'object' && currObj !== null) {
+    return currObj;
   }
+  // Check if the key is not a number, if it is a number, an array must be used
+  else if (
+    typeof nextKey === 'string' &&
+    ((nextKey as unknown as number) * 0 !== 0 || nextKey.indexOf('.') > -1)
+  ) {
+    return (obj[key] = {});
+  }
+  return (obj[key] = []) as unknown as KeyableObject;
 }
 
 const MAX_DEPTH = 20;

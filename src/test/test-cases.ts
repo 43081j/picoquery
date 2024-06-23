@@ -65,6 +65,11 @@ export const testCases: TestCase[] = [
     stringifyOutput: 'foo=&bar=',
     output: {foo: '', bar: ''}
   },
+  {
+    input: '=x',
+    stringifyOutput: '=x',
+    output: {'': 'x'}
+  },
 
   // Encoded keys and values
   {
