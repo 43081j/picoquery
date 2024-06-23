@@ -48,4 +48,15 @@ test('stringify', async (t) => {
   await t.test('non-objects result in empty string', () => {
     assert.equal(stringify(null), '');
   });
+
+  await t.test('custom value serializer', () => {
+    const result = stringify(
+      {foo: 'bar'},
+      {
+        valueSerializer: () => 'baz'
+      }
+    );
+
+    assert.equal(result, 'foo=baz');
+  });
 });

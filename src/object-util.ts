@@ -36,26 +36,6 @@ const strBracketLeft = '[';
 const strBracketRight = ']';
 const strDot = '.';
 
-type Primitive = number | string | boolean;
-
-function getAsPrimitive(value: unknown): Primitive {
-  switch (typeof value) {
-    case 'string':
-      // Length check is handled inside encodeString function
-      return encodeString(value);
-    case 'bigint':
-    case 'boolean':
-      return '' + value;
-    case 'number':
-      if (Number.isFinite(value)) {
-        return value < 1e21 ? '' + value : encodeString('' + value);
-      }
-      break;
-  }
-
-  return '';
-}
-
 export function stringifyObject(
   obj: Record<PropertyKey, unknown>,
   options: Partial<Options>,
@@ -68,7 +48,8 @@ export function stringifyObject(
     arrayRepeat = defaultOptions.arrayRepeat,
     arrayRepeatSyntax = defaultOptions.arrayRepeatSyntax,
     nesting = defaultOptions.nesting,
-    delimiter = defaultOptions.delimiter
+    delimiter = defaultOptions.delimiter,
+    valueSerializer = defaultOptions.valueSerializer
   } = options;
   const strDelimiter =
     typeof delimiter === 'number' ? String.fromCharCode(delimiter) : delimiter;
@@ -121,7 +102,7 @@ export function stringifyObject(
     } else {
       result += encodeString(path);
       result += '=';
-      result += getAsPrimitive(value);
+      result += valueSerializer(value, key);
     }
 
     if (firstKey) {
