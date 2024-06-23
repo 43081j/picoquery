@@ -38,10 +38,18 @@ jobs:
         env:
           TAG_NAME: ${{ github.ref_name }}
       - run: npm publish --provenance --access public --tag next
-        if: "github.event.release.prerelease"
+        if: "github.event.release.prerelease && !startsWith(github.ref_name, '1.')"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
       - run: npm publish --provenance --access public
-        if: "!github.event.release.prerelease"
+        if: "!github.event.release.prerelease && !startsWith(github.ref_name, '1.')"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+      - run: npm publish --provenance --access public --tag v1-next
+        if: "github.event.release.prerelease && startsWith(github.ref_name, '1.')"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+      - run: npm publish --provenance --access public --tag v1
+        if: "!github.event.release.prerelease && startsWith(github.ref_name, '1.')"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
