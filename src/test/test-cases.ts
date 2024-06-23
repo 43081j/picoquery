@@ -183,6 +183,18 @@ export const testCases: TestCase[] = [
     options: {nesting: true, nestingSyntax: 'index'}
   },
   {
+    input: 'foo[one][two][three]=dwa',
+    stringifyOutput: 'foo%5Bone%5D%5Btwo%5D%5Bthree%5D=dwa',
+    output: {foo: {one: {two: {three: 'dwa'}}}},
+    options: {nesting: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo[one]invalid[two]=dwa',
+    stringifyOutput: 'foo%5Binvalid%5D%5Btwo%5D=dwa',
+    output: {foo: {invalid: {two: 'dwa'}}},
+    options: {nesting: true, nestingSyntax: 'index'}
+  },
+  {
     input: 'foo[bar=trzy',
     stringifyOutput: 'foo%5Bbar%5D=trzy',
     output: {foo: {bar: 'trzy'}},
@@ -203,6 +215,11 @@ export const testCases: TestCase[] = [
   {
     input: 'foo.bar=x&foo.baz=y',
     output: {foo: {bar: 'x', baz: 'y'}},
+    options: {nesting: true, nestingSyntax: 'dot'}
+  },
+  {
+    input: 'foo.bar.x=x&foo.bar.y=y',
+    output: {foo: {bar: {x: 'x', y: 'y'}}},
     options: {nesting: true, nestingSyntax: 'dot'}
   },
   {

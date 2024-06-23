@@ -242,9 +242,6 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           );
 
           currentKey = keyDeserializer(keyChunk);
-          if (lastKey !== undefined) {
-            currentObj = getDeepObject(currentObj, lastKey, currentKey);
-          }
           lastKey = currentKey;
 
           keyHasPlus = false;
