@@ -3,7 +3,6 @@
   "version": "0.0.0-dev",
   "description": "A small library for parsing and serialisation query strings",
   "main": "lib/main.js",
-  "type": "module",
   "files": [
     "lib",
     "!lib/test"
