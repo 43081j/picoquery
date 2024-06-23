@@ -36,11 +36,13 @@ test('getDeepObject', async (t) => {
   });
 
   await t.test('replaces null with new object', () => {
-    assert.deepEqual(getDeepObject({foo: null}, 'foo', ''), {});
+    assert.deepEqual(getDeepObject({foo: null}, 'foo', 'bar'), {});
   });
 
   await t.test('treats decimals as object keys', () => {
-    assert.deepEqual(getDeepObject({}, 'foo', '1.5'), {'1.5': {}});
+    const obj = {};
+    getDeepObject(obj, 'foo', '1.5');
+    assert.deepEqual(obj, {foo: {}});
   });
 });
 
