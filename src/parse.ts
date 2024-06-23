@@ -67,6 +67,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
   } = options ?? {};
   const charDelimiter =
     typeof delimiter === 'string' ? delimiter.charCodeAt(0) : delimiter;
+  const isJsNestingSyntax = nestingSyntax === 'js';
 
   // Optimization: Use new Empty() instead of Object.create(null) for performance
   // v8 has a better optimization for initializing functions compared to Object
@@ -89,6 +90,8 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
   let shouldDecodeValue = false;
   let keyHasPlus = false;
   let valueHasPlus = false;
+  let keyIsDot = false;
+  let keyIsIndex = false;
   let hasBothKeyValuePair = false;
   let c = 0;
   let arrayRepeatBracketIndex = -1;
@@ -119,7 +122,13 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
 
         currentKey = keyDeserializer(keyChunk);
         if (lastKey !== undefined) {
-          currentObj = getDeepObject(currentObj, lastKey, currentKey);
+          currentObj = getDeepObject(
+            currentObj,
+            lastKey,
+            currentKey,
+            isJsNestingSyntax && keyIsDot,
+            isJsNestingSyntax && keyIsIndex
+          );
         }
       }
 
@@ -160,6 +169,8 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
       shouldDecodeValue = false;
       keyHasPlus = false;
       valueHasPlus = false;
+      keyIsDot = false;
+      keyIsIndex = false;
       arrayRepeatBracketIndex = -1;
       keySeparatorIndex = i;
       currentObj = result;
@@ -177,7 +188,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
 
       if (
         nesting &&
-        nestingSyntax === 'index' &&
+        (nestingSyntax === 'index' || isJsNestingSyntax) &&
         equalityIndex <= startingIndex
       ) {
         keyChunk = computeKeySlice(
@@ -190,46 +201,28 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
 
         currentKey = keyDeserializer(keyChunk);
         if (lastKey !== undefined) {
-          currentObj = getDeepObject(currentObj, lastKey, currentKey);
+          currentObj = getDeepObject(
+            currentObj,
+            lastKey,
+            currentKey,
+            undefined,
+            isJsNestingSyntax
+          );
         }
         lastKey = currentKey;
 
         keySeparatorIndex = i;
         keyHasPlus = false;
         shouldDecodeKey = false;
+        keyIsIndex = true;
+        keyIsDot = false;
       }
     }
     // Check '.'
     else if (c === 46) {
       if (
         nesting &&
-        nestingSyntax === 'dot' &&
-        equalityIndex <= startingIndex
-      ) {
-        keyChunk = computeKeySlice(
-          input,
-          keySeparatorIndex + 1,
-          i,
-          keyHasPlus,
-          shouldDecodeKey
-        );
-
-        currentKey = keyDeserializer(keyChunk);
-        if (lastKey !== undefined) {
-          currentObj = getDeepObject(currentObj, lastKey, currentKey);
-        }
-        lastKey = currentKey;
-
-        keySeparatorIndex = i;
-        keyHasPlus = false;
-        shouldDecodeKey = false;
-      }
-    }
-    // Check '['
-    else if (c === 91) {
-      if (
-        nesting &&
-        nestingSyntax === 'index' &&
+        (nestingSyntax === 'dot' || isJsNestingSyntax) &&
         equalityIndex <= startingIndex
       ) {
         if (keySeparatorIndex !== i - 1) {
@@ -242,10 +235,56 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           );
 
           currentKey = keyDeserializer(keyChunk);
+          if (lastKey !== undefined) {
+            currentObj = getDeepObject(
+              currentObj,
+              lastKey,
+              currentKey,
+              isJsNestingSyntax
+            );
+          }
           lastKey = currentKey;
 
           keyHasPlus = false;
           shouldDecodeKey = false;
+        }
+
+        keyIsDot = true;
+        keyIsIndex = false;
+        keySeparatorIndex = i;
+      }
+    }
+    // Check '['
+    else if (c === 91) {
+      if (
+        nesting &&
+        (nestingSyntax === 'index' || isJsNestingSyntax) &&
+        equalityIndex <= startingIndex
+      ) {
+        if (keySeparatorIndex !== i - 1) {
+          keyChunk = computeKeySlice(
+            input,
+            keySeparatorIndex + 1,
+            i,
+            keyHasPlus,
+            shouldDecodeKey
+          );
+
+          currentKey = keyDeserializer(keyChunk);
+          if (isJsNestingSyntax && lastKey !== undefined) {
+            currentObj = getDeepObject(
+              currentObj,
+              lastKey,
+              currentKey,
+              isJsNestingSyntax
+            );
+          }
+          lastKey = currentKey;
+
+          keyHasPlus = false;
+          shouldDecodeKey = false;
+          keyIsDot = false;
+          keyIsIndex = true;
         }
 
         keySeparatorIndex = i;

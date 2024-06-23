@@ -12,7 +12,9 @@ function isPrototypeKey(value: unknown) {
 export function getDeepObject(
   obj: KeyableObject,
   key: PropertyKey,
-  nextKey: PropertyKey
+  nextKey: PropertyKey,
+  forceObject?: boolean,
+  forceArray?: boolean
 ): KeyableObject {
   if (isPrototypeKey(key)) return obj;
 
@@ -21,13 +23,17 @@ export function getDeepObject(
     return currObj;
   }
   // Check if the key is not a number, if it is a number, an array must be used
-  else if (
-    typeof nextKey === 'string' &&
-    ((nextKey as unknown as number) * 0 !== 0 || nextKey.indexOf('.') > -1)
+  if (
+    !forceObject &&
+    (forceArray ||
+      typeof nextKey === 'number' ||
+      (typeof nextKey === 'string' &&
+        (nextKey as unknown as number) * 0 === 0 &&
+        nextKey.indexOf('.') === -1))
   ) {
-    return (obj[key] = {});
+    return (obj[key] = []) as unknown as KeyableObject;
   }
-  return (obj[key] = []) as unknown as KeyableObject;
+  return (obj[key] = {});
 }
 
 const MAX_DEPTH = 20;
@@ -41,7 +47,7 @@ export function stringifyObject(
   options: Partial<Options>,
   depth: number = 0,
   parentKey?: string,
-  useArrayRepeatKey?: boolean
+  isProbableArray?: boolean
 ): string {
   const {
     nestingSyntax = defaultOptions.nestingSyntax,
@@ -53,6 +59,9 @@ export function stringifyObject(
   } = options;
   const strDelimiter =
     typeof delimiter === 'number' ? String.fromCharCode(delimiter) : delimiter;
+  const useArrayRepeatKey = isProbableArray === true && arrayRepeat;
+  const shouldUseDot =
+    nestingSyntax === 'dot' || (nestingSyntax === 'js' && !isProbableArray);
 
   if (depth > MAX_DEPTH) {
     return '';
@@ -60,7 +69,7 @@ export function stringifyObject(
 
   let result = '';
   let firstKey = true;
-  let probableArray = false;
+  let valueIsProbableArray = false;
 
   for (const key in obj) {
     const value = obj[key];
@@ -71,7 +80,7 @@ export function stringifyObject(
         if (arrayRepeatSyntax === 'bracket') {
           path += strBracketPair;
         }
-      } else if (nestingSyntax === 'dot') {
+      } else if (shouldUseDot) {
         path += strDot;
         path += key;
       } else {
@@ -88,15 +97,15 @@ export function stringifyObject(
     }
 
     if (typeof value === 'object' && value !== null) {
-      probableArray = (value as unknown[]).pop !== undefined;
+      valueIsProbableArray = (value as unknown[]).pop !== undefined;
 
-      if (nesting || (arrayRepeat && probableArray)) {
+      if (nesting || (arrayRepeat && valueIsProbableArray)) {
         result += stringifyObject(
           value as Record<PropertyKey, unknown>,
           options,
           depth + 1,
           path,
-          arrayRepeat && probableArray
+          valueIsProbableArray
         );
       }
     } else {
