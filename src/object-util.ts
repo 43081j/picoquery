@@ -10,23 +10,23 @@ function isPrototypeKey(value: unknown) {
 
 export function getDeepObject(
   obj: KeyableObject,
-  lastKey: PropertyKey,
-  key: PropertyKey
+  key: PropertyKey,
+  nextKey: PropertyKey
 ): KeyableObject {
-  const currObj = obj[lastKey] as KeyableObject;
+  if (isPrototypeKey(key)) return obj;
+
+  const currObj = obj[key] as KeyableObject;
   if (typeof currObj === 'object' && currObj !== null) {
-    if (isPrototypeKey(lastKey)) return obj;
     return currObj;
   }
   // Check if the key is not a number, if it is a number, an array must be used
   else if (
-    typeof key === 'string' &&
-    ((key as unknown as number) * 0 !== 0 || key.indexOf('.') > -1)
+    typeof nextKey === 'string' &&
+    ((nextKey as unknown as number) * 0 !== 0 || nextKey.indexOf('.') > -1)
   ) {
-    if (isPrototypeKey(lastKey)) return obj;
-    return (obj[lastKey] = {});
+    return (obj[key] = {});
   }
-  return (obj[lastKey] = []) as unknown as KeyableObject;
+  return (obj[key] = []) as unknown as KeyableObject;
 }
 
 const MAX_DEPTH = 20;

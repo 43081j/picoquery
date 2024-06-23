@@ -11,10 +11,36 @@ test('getDeepObject', async (t) => {
     assert.deepEqual(getDeepObject({}, 'foo', '1'), []);
   });
 
+  await t.test('array if key is number', () => {
+    assert.deepEqual(getDeepObject({}, 'foo', 5), []);
+  });
+
   await t.test('existing object if value last key already exists', () => {
     assert.deepEqual(getDeepObject({foo: {bar: true}}, 'foo', 'baz'), {
       bar: true
     });
+  });
+
+  const disallowedNames = ['__proto__', 'constructor', 'prototype'];
+
+  for (const name of disallowedNames) {
+    await t.test(`setting disallowed ${name} returns object as-is`, () => {
+      assert.deepEqual(getDeepObject({foo: 'bar'}, name, 'foo'), {foo: 'bar'});
+    });
+  }
+
+  await t.test('can key into existing sub-object', () => {
+    assert.deepEqual(getDeepObject({foo: {bar: 'baz'}}, 'foo', ''), {
+      bar: 'baz'
+    });
+  });
+
+  await t.test('replaces null with new object', () => {
+    assert.deepEqual(getDeepObject({foo: null}, 'foo', ''), {});
+  });
+
+  await t.test('treats decimals as object keys', () => {
+    assert.deepEqual(getDeepObject({}, 'foo', '1.5'), {'1.5': {}});
   });
 });
 
