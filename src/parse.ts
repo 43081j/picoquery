@@ -138,18 +138,18 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         }
 
         const newValue = valueDeserializer(value, currentKey);
-        const currentValue = currentObj[currentKey];
-
-        if (currentValue === undefined || !arrayRepeat) {
-          currentObj[currentKey] = newValue;
-        } else if (arrayRepeat) {
+        if (arrayRepeat) {
+          const currentValue = currentObj[currentKey];
+          if (currentValue === undefined) {
+            currentObj[currentKey] = newValue;
+          }
           // Optimization: value.pop is faster than Array.isArray(value)
-          if ((currentValue as unknown[]).pop) {
+          else if ((currentValue as unknown[]).pop) {
             (currentValue as unknown[]).push(newValue);
           } else {
             currentObj[currentKey] = [currentValue, newValue];
           }
-        }
+        } else currentObj[currentKey] = newValue;
       }
 
       // Reset reading key value pairs
