@@ -228,6 +228,41 @@ export const testCases: TestCase[] = [
     options: {nesting: true, nestingSyntax: 'index'}
   },
 
+  // Nesting syntax: js
+  {
+    input: 'foo[0]=x&foo[1]=y',
+    stringifyOutput: 'foo%5B0%5D=x&foo%5B1%5D=y',
+    output: {foo: ['x', 'y']},
+    options: {nesting: true, nestingSyntax: 'js'}
+  },
+  {
+    input: 'foo.bar[0]=x&foo.bar[1]=y',
+    stringifyOutput: 'foo.bar%5B0%5D=x&foo.bar%5B1%5D=y',
+    output: {foo: {bar: ['x', 'y']}},
+    options: {nesting: true, nestingSyntax: 'js'}
+  },
+  {
+    input: 'foo.bar[0].baz=x',
+    stringifyOutput: 'foo.bar%5B0%5D.baz=x',
+    output: {foo: {bar: [{baz: 'x'}]}},
+    options: {nesting: true, nestingSyntax: 'js'}
+  },
+  {
+    input: 'foo.bar=x&foo.baz=y',
+    output: {foo: {bar: 'x', baz: 'y'}},
+    options: {nesting: true, nestingSyntax: 'js'}
+  },
+  {
+    input: 'foo.0=x&foo.1=y',
+    output: {foo: {0: 'x', 1: 'y'}},
+    options: {nesting: true, nestingSyntax: 'js'}
+  },
+  {
+    input: 'foo.bar.x=x&foo.bar.y=y',
+    output: {foo: {bar: {x: 'x', y: 'y'}}},
+    options: {nesting: true, nestingSyntax: 'js'}
+  },
+
   // Sparse array with nestinh
   {
     input: 'foo[0]=x&foo[2]=y',

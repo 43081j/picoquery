@@ -121,6 +121,8 @@ Sets which style of nesting syntax should be used. The choices are:
 
 - `dot` (e.g. `foo.bar=baz`)
 - `index` (e.g. `foo[bar]=baz`)
+- `js` (e.g. `foo.bar[0]=baz`, i.e. arrays are indexed and properties are
+dotted)
 
 ### `arrayRepeat`
 

@@ -10,7 +10,9 @@ export type NestingSyntax =
   // `foo.bar`
   | 'dot'
   // `foo[bar]`
-  | 'index';
+  | 'index'
+  // `foo.bar[0]`
+  | 'js';
 
 export type DeserializeValueFunction = (
   value: string,

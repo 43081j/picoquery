@@ -48,6 +48,31 @@ test('getDeepObject', async (t) => {
     getDeepObject(obj, 'foo', 'bar');
     assert.deepEqual(obj, {foo: {}});
   });
+
+  await t.test('creates new object if forceObject=true', () => {
+    const obj = {};
+    getDeepObject(obj, 'foo', '0', true);
+    assert.deepEqual(obj, {
+      foo: {}
+    });
+  });
+
+  await t.test('creates new array if forceArray=true', () => {
+    const obj = {};
+    getDeepObject(obj, 'foo', 'bar', undefined, true);
+    assert.deepEqual(obj, {
+      foo: []
+    });
+  });
+
+  await t.test('handles non-string/non-number keys', () => {
+    const obj = {};
+    const key = Symbol();
+    getDeepObject(obj, 'foo', key);
+    assert.deepEqual(obj, {
+      foo: {}
+    });
+  });
 });
 
 test('stringifyObject', async (t) => {
