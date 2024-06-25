@@ -95,6 +95,8 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
   let hasBothKeyValuePair = false;
   let c = 0;
   let arrayRepeatBracketIndex = -1;
+  let prevIndex = -1;
+  let prevChar = -1;
 
   // Have a boundary of input.length + 1 to access last pair inside the loop.
   for (let i = 0; i < inputLength + 1; i++) {
@@ -150,7 +152,11 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         if (arrayRepeat) {
           const currentValue = currentObj[currentKey];
           if (currentValue === undefined) {
-            currentObj[currentKey] = newValue;
+            if (arrayRepeatBracketIndex > -1) {
+              currentObj[currentKey] = [newValue];
+            } else {
+              currentObj[currentKey] = newValue;
+            }
           }
           // Optimization: value.pop is faster than Array.isArray(value)
           else if ((currentValue as unknown[]).pop) {
@@ -180,8 +186,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
     // Check ']'
     else if (c === 93) {
       if (arrayRepeat && arrayRepeatSyntax === 'bracket') {
-        const prevIndex = i - 1;
-        if (input.charCodeAt(prevIndex) === 91) {
+        if (prevChar === 91) {
           arrayRepeatBracketIndex = prevIndex;
         }
       }
@@ -191,29 +196,31 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         (nestingSyntax === 'index' || isJsNestingSyntax) &&
         equalityIndex <= startingIndex
       ) {
-        keyChunk = computeKeySlice(
-          input,
-          keySeparatorIndex + 1,
-          i,
-          keyHasPlus,
-          shouldDecodeKey
-        );
-
-        currentKey = keyDeserializer(keyChunk);
-        if (lastKey !== undefined) {
-          currentObj = getDeepObject(
-            currentObj,
-            lastKey,
-            currentKey,
-            undefined,
-            isJsNestingSyntax
+        if (keySeparatorIndex !== prevIndex) {
+          keyChunk = computeKeySlice(
+            input,
+            keySeparatorIndex + 1,
+            i,
+            keyHasPlus,
+            shouldDecodeKey
           );
+
+          currentKey = keyDeserializer(keyChunk);
+          if (lastKey !== undefined) {
+            currentObj = getDeepObject(
+              currentObj,
+              lastKey,
+              currentKey,
+              undefined,
+              isJsNestingSyntax
+            );
+          }
+          lastKey = currentKey;
+          keyHasPlus = false;
+          shouldDecodeKey = false;
         }
-        lastKey = currentKey;
 
         keySeparatorIndex = i;
-        keyHasPlus = false;
-        shouldDecodeKey = false;
         keyIsIndex = true;
         keyIsDot = false;
       }
@@ -225,7 +232,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         (nestingSyntax === 'dot' || isJsNestingSyntax) &&
         equalityIndex <= startingIndex
       ) {
-        if (keySeparatorIndex !== i - 1) {
+        if (keySeparatorIndex !== prevIndex) {
           keyChunk = computeKeySlice(
             input,
             keySeparatorIndex + 1,
@@ -261,7 +268,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         (nestingSyntax === 'index' || isJsNestingSyntax) &&
         equalityIndex <= startingIndex
       ) {
-        if (keySeparatorIndex !== i - 1) {
+        if (keySeparatorIndex !== prevIndex) {
           keyChunk = computeKeySlice(
             input,
             keySeparatorIndex + 1,
@@ -316,6 +323,9 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         shouldDecodeKey = true;
       }
     }
+
+    prevIndex = i;
+    prevChar = c;
   }
 
   return result;
