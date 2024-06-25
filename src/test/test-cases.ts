@@ -129,10 +129,21 @@ export const testCases: TestCase[] = [
     output: {foo: ['x', 'y']},
     options: {arrayRepeat: true, arrayRepeatSyntax: 'bracket'}
   },
+  {
+    input: 'foo[]=x',
+    stringifyOutput: 'foo%5B%5D=x',
+    output: {foo: ['x']},
+    options: {arrayRepeat: true, arrayRepeatSyntax: 'bracket'}
+  },
   // Array syntax: repeat
   {
     input: 'foo=x&foo=y',
     output: {foo: ['x', 'y']},
+    options: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
+  },
+  {
+    input: 'foo=x',
+    output: {foo: 'x'},
     options: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
   },
   {
@@ -200,6 +211,39 @@ export const testCases: TestCase[] = [
     output: {foo: {bar: 'trzy'}},
     options: {nesting: true, nestingSyntax: 'index'}
   },
+  {
+    input: 'foo[0]=trzy&foo[]=cztery',
+    stringifyOutput: 'foo%5B%5D=trzy&foo%5B%5D=cztery',
+    output: {foo: ['trzy', 'cztery']},
+    options: {
+      nesting: true,
+      nestingSyntax: 'index',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
+  },
+  {
+    input: 'foo[bar][]=baz',
+    stringifyOutput: 'foo%5Bbar%5D%5B%5D=baz',
+    output: {foo: {bar: ['baz']}},
+    options: {
+      nesting: true,
+      nestingSyntax: 'index',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
+  },
+  {
+    input: 'foo[bar][]=x&foo[bar][]=y',
+    stringifyOutput: 'foo%5Bbar%5D%5B%5D=x&foo%5Bbar%5D%5B%5D=y',
+    output: {foo: {bar: ['x', 'y']}},
+    options: {
+      nesting: true,
+      nestingSyntax: 'index',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
+  },
 
   // Nesting syntax: dot
   {
@@ -226,6 +270,28 @@ export const testCases: TestCase[] = [
     input: 'foo.bar=x&foo.baz=y',
     output: {'foo.bar': 'x', 'foo.baz': 'y'},
     options: {nesting: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo.bar[]=baz',
+    stringifyOutput: 'foo.bar%5B%5D=baz',
+    output: {foo: {bar: ['baz']}},
+    options: {
+      nesting: true,
+      nestingSyntax: 'dot',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
+  },
+  {
+    input: 'foo.bar[]=x&foo.bar[]=y',
+    stringifyOutput: 'foo.bar%5B%5D=x&foo.bar%5B%5D=y',
+    output: {foo: {bar: ['x', 'y']}},
+    options: {
+      nesting: true,
+      nestingSyntax: 'dot',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
   },
 
   // Nesting syntax: js
@@ -261,6 +327,50 @@ export const testCases: TestCase[] = [
     input: 'foo.bar.x=x&foo.bar.y=y',
     output: {foo: {bar: {x: 'x', y: 'y'}}},
     options: {nesting: true, nestingSyntax: 'js'}
+  },
+  {
+    input: 'foo.bar[]=x',
+    stringifyOutput: 'foo.bar%5B%5D=x',
+    output: {foo: {bar: ['x']}},
+    options: {
+      nesting: true,
+      nestingSyntax: 'js',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
+  },
+  {
+    input: 'foo[0][]=x',
+    stringifyOutput: 'foo%5B%5D%5B%5D=x',
+    output: {foo: [['x']]},
+    options: {
+      nesting: true,
+      nestingSyntax: 'js',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
+  },
+  {
+    input: 'foo.bar[]=x&foo.bar[]=y',
+    stringifyOutput: 'foo.bar%5B%5D=x&foo.bar%5B%5D=y',
+    output: {foo: {bar: ['x', 'y']}},
+    options: {
+      nesting: true,
+      nestingSyntax: 'js',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
+  },
+  {
+    input: 'foo[0][]=x&foo[0][]=y',
+    stringifyOutput: 'foo%5B%5D%5B%5D=x&foo%5B%5D%5B%5D=y',
+    output: {foo: [['x', 'y']]},
+    options: {
+      nesting: true,
+      nestingSyntax: 'js',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
   },
 
   // Sparse array with nestinh
