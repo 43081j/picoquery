@@ -2,6 +2,7 @@ import * as assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {stringify} from '../main.js';
 import {testCases} from './test-cases.js';
+import {encodeString} from '../string-util.js';
 
 test('stringify', async (t) => {
   for (const testCase of testCases) {
@@ -40,7 +41,23 @@ test('stringify', async (t) => {
     assert.equal(result, 'foo=400');
   });
 
-  await t.test('skips infinite numbers', () => {
+  await t.test('date values', () => {
+    const date = new Date('2000-01-01');
+    const result = stringify({foo: date});
+    assert.equal(result, `foo=${encodeString(date.toISOString())}`);
+  });
+
+  await t.test('complex objects', () => {
+    const cls = class {
+      foo = 123;
+      bar = 456;
+    };
+    const instance = new cls();
+    const result = stringify(instance);
+    assert.equal(result, 'foo=123&bar=456');
+  });
+
+  await t.test('stringifies infinite numbers as empty', () => {
     const result = stringify({foo: Infinity});
     assert.equal(result, 'foo=');
   });

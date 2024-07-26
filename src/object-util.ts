@@ -55,7 +55,8 @@ export function stringifyObject(
     arrayRepeatSyntax = defaultOptions.arrayRepeatSyntax,
     nesting = defaultOptions.nesting,
     delimiter = defaultOptions.delimiter,
-    valueSerializer = defaultOptions.valueSerializer
+    valueSerializer = defaultOptions.valueSerializer,
+    shouldSerializeObject = defaultOptions.shouldSerializeObject
   } = options;
   const strDelimiter =
     typeof delimiter === 'number' ? String.fromCharCode(delimiter) : delimiter;
@@ -96,7 +97,11 @@ export function stringifyObject(
       result += strDelimiter;
     }
 
-    if (typeof value === 'object' && value !== null) {
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      !shouldSerializeObject(value)
+    ) {
       valueIsProbableArray = (value as unknown[]).pop !== undefined;
 
       if (nesting || (arrayRepeat && valueIsProbableArray)) {

@@ -24,9 +24,13 @@ export type SerializeValueFunction = (
   key: PropertyKey
 ) => string;
 
+export type ShouldSerializeObjectFunction = (value: unknown) => boolean;
+
 export type DeserializeKeyFunction = (key: string) => PropertyKey;
 
-export function defaultValueSerializer(value: unknown): string {
+export const defaultValueSerializer: SerializeValueFunction = (
+  value: unknown
+): string => {
   switch (typeof value) {
     case 'string':
       // Length check is handled inside encodeString function
@@ -41,8 +45,18 @@ export function defaultValueSerializer(value: unknown): string {
       break;
   }
 
+  if (value instanceof Date) {
+    return encodeString(value.toISOString());
+  }
+
   return '';
-}
+};
+
+export const defaultShouldSerializeObject: ShouldSerializeObjectFunction = (
+  val
+) => {
+  return val instanceof Date;
+};
 
 export interface Options {
   // Enable parsing nested objects and arrays
@@ -70,6 +84,7 @@ export interface Options {
   valueDeserializer: DeserializeValueFunction;
   keyDeserializer: DeserializeKeyFunction;
   valueSerializer: SerializeValueFunction;
+  shouldSerializeObject: ShouldSerializeObjectFunction;
 }
 
 const identityFunc = <T>(v: T): T => v;
@@ -82,5 +97,6 @@ export const defaultOptions: Options = {
   delimiter: 38,
   valueDeserializer: identityFunc,
   valueSerializer: defaultValueSerializer,
-  keyDeserializer: identityFunc
+  keyDeserializer: identityFunc,
+  shouldSerializeObject: defaultShouldSerializeObject
 };
