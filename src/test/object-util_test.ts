@@ -199,4 +199,24 @@ test('stringifyObject', async (t) => {
   await t.test('null values result in empty string', () => {
     assert.deepEqual(stringifyObject({foo: null}, {}), 'foo=');
   });
+
+  await t.test('custom shouldSerializeObject function', () => {
+    const foo = {
+      toString() {
+        return 'bar';
+      }
+    };
+    const obj = {
+      foo
+    };
+    const result = stringifyObject(obj, {
+      shouldSerializeObject: (val) => {
+        return val === foo;
+      },
+      valueSerializer: (val) => {
+        return String(val);
+      }
+    });
+    assert.equal(result, 'foo=bar');
+  });
 });
