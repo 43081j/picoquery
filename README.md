@@ -201,6 +201,50 @@ parse('300=foo', {
 // {300: 'foo'}
 ```
 
+### `shouldSerializeObject`
+
+Can be set to a function which determines if an _object-like_ value should be
+serialized instead of being treated as a nested object.
+
+**All non-object primitives will always be serialized.**
+
+For example:
+
+```
+// Assuming `StringifableObject` returns its constructor value when `toString`
+// is called.
+stringify({
+  foo: new StringifiableObject('test')
+}, {
+  shouldSerializeObject(val) {
+    return val instanceof StringifableObject;
+  },
+  valueSerializer: (value) => {
+    return String(value);
+  }
+});
+
+// foo=test
+```
+
+If you want to fall back to the default logic, you can import the default
+function:
+
+```
+import {defaultShouldSerializeObject, stringify} from 'picoquery';
+
+stringify({
+  foo: new StringifiableObject('test')
+}, {
+  shouldSerializeObject(val) {
+    if (val instanceof StringifableObject) {
+      return true;
+    }
+    return defaultShouldSerializeObject(val);
+  }
+});
+```
+
 ### `valueSerializer`
 
 Can be set to a function which will be used to serialize each value during
