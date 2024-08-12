@@ -74,6 +74,9 @@ export function stringifyObject(
 
   for (const key in obj) {
     const value = obj[key];
+    if (value === undefined) {
+      continue;
+    }
     let path;
     if (parentKey) {
       path = parentKey;
