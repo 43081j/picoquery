@@ -5,7 +5,7 @@ import {
   type DeserializeValueFunction,
   defaultOptions
 } from './shared.js';
-import fastDecode from 'fast-decode-uri-component';
+import {decodeURIComponent} from './decode-uri-component.js';
 
 export type ParsedQuery = Record<PropertyKey, unknown>;
 export type ParseOptions = Partial<Options>;
@@ -44,7 +44,7 @@ function computeKeySlice(
   }
 
   if (shouldDecodeKey) {
-    chunk = fastDecode(chunk) || chunk;
+    chunk = decodeURIComponent(chunk) || chunk;
   }
 
   return chunk;
@@ -144,7 +144,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           }
 
           if (shouldDecodeValue) {
-            value = fastDecode(value) || value;
+            value = decodeURIComponent(value) || value;
           }
         }
 
