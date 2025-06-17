@@ -9,7 +9,7 @@
     "!lib/test"
   ],
   "scripts": {
-    "build:clean": "rimraf lib",
+    "build:clean": "premove lib",
     "build": "npm run build:clean && tsc",
     "test": "npm run build && c8 node --test",
     "lint": "npm run lint:format && eslint src",
@@ -42,9 +42,9 @@
     "@types/qs": "^6.9.15",
     "c8": "^10.1.2",
     "fast-querystring": "^1.1.2",
+    "premove": "^4.0.0",
     "prettier": "^3.2.5",
     "qs": "^6.12.1",
-    "rimraf": "^5.0.7",
     "tinybench": "^2.8.0",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.7.1"
