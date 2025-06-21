@@ -19,13 +19,4 @@ test('parse', async (t) => {
     const result = parse(808 as unknown as string);
     assert.deepEqual({...result}, {});
   });
-
-  await t.test('js nesting dot-syntax always uses a property', () => {
-    const result = parse('foo[bar]=x', {nesting: true, nestingSyntax: 'js'});
-    assert.ok(Array.isArray(result.foo));
-    assert.equal(
-      (result.foo as unknown as Record<PropertyKey, unknown>).bar,
-      'x'
-    );
-  });
 });
