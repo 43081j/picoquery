@@ -91,7 +91,6 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
   let keyHasPlus = false;
   let valueHasPlus = false;
   let keyIsDot = false;
-  let keyIsIndex = false;
   let hasBothKeyValuePair = false;
   let c = 0;
   let arrayRepeatBracketIndex = -1;
@@ -129,7 +128,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
             lastKey,
             currentKey,
             isJsNestingSyntax && keyIsDot,
-            isJsNestingSyntax && keyIsIndex
+            undefined
           );
         }
       }
@@ -176,7 +175,6 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
       keyHasPlus = false;
       valueHasPlus = false;
       keyIsDot = false;
-      keyIsIndex = false;
       arrayRepeatBracketIndex = -1;
       keySeparatorIndex = i;
       currentObj = result;
@@ -212,7 +210,7 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
               lastKey,
               currentKey,
               undefined,
-              isJsNestingSyntax
+              undefined
             );
           }
           lastKey = currentKey;
@@ -221,7 +219,6 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         }
 
         keySeparatorIndex = i;
-        keyIsIndex = true;
         keyIsDot = false;
       }
     }
@@ -257,7 +254,6 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
         }
 
         keyIsDot = true;
-        keyIsIndex = false;
         keySeparatorIndex = i;
       }
     }
@@ -291,7 +287,6 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
           keyHasPlus = false;
           shouldDecodeKey = false;
           keyIsDot = false;
-          keyIsIndex = true;
         }
 
         keySeparatorIndex = i;

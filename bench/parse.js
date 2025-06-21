@@ -29,6 +29,13 @@ const suites = [
     }
   },
   {
+    name: 'JS nesting',
+    inputs: ['foo.bar.x=303&foo[bar][y]=808'],
+    options: {
+      pico: {nesting: true, nestingSyntax: 'js'}
+    }
+  },
+  {
     name: 'Custom delimiter',
     inputs: ['foo=a;bar=b;baz=c'],
     options: {
