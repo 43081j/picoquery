@@ -329,7 +329,24 @@ export const testCases: TestCase[] = [
     options: {nesting: true, nestingSyntax: 'js'}
   },
   {
+    input: 'foo[bar]=x&foo[baz]=y',
+    stringifyOutput: 'foo.bar=x&foo.baz=y',
+    output: {foo: {bar: 'x', baz: 'y'}},
+    options: {nesting: true, nestingSyntax: 'js'}
+  },
+  {
     input: 'foo.bar[]=x',
+    stringifyOutput: 'foo.bar%5B%5D=x',
+    output: {foo: {bar: ['x']}},
+    options: {
+      nesting: true,
+      nestingSyntax: 'js',
+      arrayRepeat: true,
+      arrayRepeatSyntax: 'bracket'
+    }
+  },
+  {
+    input: 'foo[bar][]=x',
     stringifyOutput: 'foo.bar%5B%5D=x',
     output: {foo: {bar: ['x']}},
     options: {

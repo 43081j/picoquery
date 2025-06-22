@@ -219,4 +219,11 @@ test('stringifyObject', async (t) => {
     });
     assert.equal(result, 'foo=bar');
   });
+  await t.test('ignore undefined values', () => {
+    const obj = {
+      a: undefined,
+      b: 'bar'
+    };
+    assert.equal(stringifyObject(obj, {nestingSyntax: 'dot'}), 'b=bar');
+  });
 });
