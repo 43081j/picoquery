@@ -16,10 +16,10 @@ npm i -S picoquery
 
 ### CommonJS vs ESM
 
-`2.x` and above are _ESM only_ (i.e. your project will need `type: "module"`
-in the `package.json`).
+`2.x` and above are _ESM only_ (i.e. if you're running Node.js older than
+`v20.17.0`/`v22.0.0`, your project will need `type: "module"` in the `package.json`).
 
-If you cannot yet move to ESM, you may continue to use `1.x` which will still
+If you cannot update Node.js or move to ESM yet, you may continue to use `1.x` which will still
 receive non-breaking changes, backported from `main`.
 
 ## Usage
