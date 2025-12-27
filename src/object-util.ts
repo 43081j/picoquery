@@ -96,10 +96,6 @@ export function stringifyObject(
       path = key;
     }
 
-    if (!firstKey) {
-      result += strDelimiter;
-    }
-
     if (
       typeof value === 'object' &&
       value !== null &&
@@ -108,22 +104,31 @@ export function stringifyObject(
       valueIsProbableArray = (value as unknown[]).pop !== undefined;
 
       if (nesting || (arrayRepeat && valueIsProbableArray)) {
-        result += stringifyObject(
+        const subResult = stringifyObject(
           value as Record<PropertyKey, unknown>,
           options,
           depth + 1,
           path,
           valueIsProbableArray
         );
+        if (subResult !== '') {
+          if (!firstKey) {
+            result += strDelimiter;
+          } else {
+            firstKey = false;
+          }
+          result += subResult;
+        }
       }
     } else {
+      if (!firstKey) {
+        result += strDelimiter;
+      } else {
+        firstKey = false;
+      }
       result += encodeString(path);
       result += '=';
       result += valueSerializer(value, key);
-    }
-
-    if (firstKey) {
-      firstKey = false;
     }
   }
 
