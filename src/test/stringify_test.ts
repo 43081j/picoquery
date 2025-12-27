@@ -76,4 +76,14 @@ test('stringify', async (t) => {
 
     assert.equal(result, 'foo=baz');
   });
+
+  await t.test('undefined values are skipped', () => {
+    const result = stringify({foo: undefined, bar: 'baz'});
+    assert.equal(result, 'bar=baz');
+  });
+
+  await t.test('empty arrays are skipped', () => {
+    const result = stringify({foo: [], bar: 'baz'});
+    assert.equal(result, 'bar=baz');
+  });
 });
