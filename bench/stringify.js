@@ -94,7 +94,6 @@ for (const suite of suites) {
 
   console.log('Benchmark:', suite.name);
 
-  await bench.warmup();
   await bench.run();
 
   console.table(bench.table());
