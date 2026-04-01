@@ -10,5 +10,13 @@ export default [
     ]
   },
   eslintConfigs.recommended,
-  ...tseslintConfigs.strict
+  ...tseslintConfigs.strict,
+  {
+    files: [
+      'src/**/*.ts'
+    ],
+    rules: {
+      'no-useless-assignment': 'off'
+    }
+  }
 ];
