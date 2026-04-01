@@ -5,6 +5,7 @@
     "moduleResolution": "node16",
     "types": ["node"],
     "declaration": true,
+    "rootDir": "./src",
     "outDir": "./lib",
     "importHelpers": false,
     "isolatedModules": true,
