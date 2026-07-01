@@ -38,15 +38,15 @@
   "homepage": "https://github.com/43081j/picoquery#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.0",
     "@types/qs": "^6.15.1",
     "c8": "^11.0.0",
     "fast-querystring": "^1.1.2",
     "premove": "^4.0.0",
-    "prettier": "^3.8.3",
-    "qs": "^6.15.2",
+    "prettier": "^3.9.4",
+    "qs": "^6.15.3",
     "tinybench": "^6.0.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.60.1"
+    "typescript-eslint": "^8.62.1"
   }
 }
