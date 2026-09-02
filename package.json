@@ -46,7 +46,7 @@
     "prettier": "^3.9.6",
     "qs": "^6.15.3",
     "tinybench": "^6.1.4",
-    "typescript": "^7.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.68.0"
   }
 }
