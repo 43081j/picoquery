@@ -56,6 +56,13 @@ const suites = [
     options: {
       pico: {arrayRepeat: true, arrayRepeatSyntax: 'repeat'}
     }
+  },
+  {
+    name: 'Index-syntax arrays',
+    inputs: ['foo[0]=a&foo[1]=b&foo[2]=c', 'foo[0][x]=a&foo[1][x]=b'],
+    options: {
+      pico: {nesting: true, nestingSyntax: 'index'}
+    }
   }
 ];
 
