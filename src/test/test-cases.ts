@@ -395,7 +395,42 @@ export const testCases: TestCase[] = [
     input: 'foo[0]=x&foo[2]=y',
     stringifyOutput: 'foo%5B0%5D=x&foo%5B2%5D=y',
     output: {foo: createSparseArray(['x', undefined, 'y'])},
+    options: {nesting: true, nestingSyntax: 'index', allowSparseArrays: true}
+  },
+  {
+    input: 'foo[0]=x&foo[2]=y',
+    stringifyOutput: 'foo%5B0%5D=x',
+    output: {foo: ['x']},
     options: {nesting: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo[0]=x&foo[999999999]=y',
+    stringifyOutput: 'foo%5B0%5D=x',
+    output: {foo: ['x']},
+    options: {nesting: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo[0]=x&foo[2][bar]=y',
+    stringifyOutput: 'foo%5B0%5D=x',
+    output: {foo: ['x']},
+    options: {nesting: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo[1]=y&foo[0]=x',
+    stringifyOutput: 'foo%5B0%5D=x&foo%5B1%5D=y',
+    output: {foo: ['x', 'y']},
+    options: {nesting: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo[0]=x&foo[1]=y&foo[1]=z',
+    stringifyOutput: 'foo%5B0%5D=x&foo%5B1%5D=z',
+    output: {foo: ['x', 'z']},
+    options: {nesting: true, nestingSyntax: 'index'}
+  },
+  {
+    input: 'foo.0=x&foo.2=y',
+    stringifyOutput: 'foo.0=x',
+    output: {foo: ['x']}
   },
 
   // Delimiter: ;

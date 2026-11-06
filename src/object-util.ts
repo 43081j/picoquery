@@ -14,7 +14,8 @@ export function getDeepObject(
   key: PropertyKey,
   nextKey: PropertyKey,
   forceObject?: boolean,
-  forceArray?: boolean
+  forceArray?: boolean,
+  createdArrays?: unknown[][]
 ): KeyableObject {
   if (isPrototypeKey(key)) return obj;
 
@@ -31,9 +32,28 @@ export function getDeepObject(
         (nextKey as unknown as number) * 0 === 0 &&
         nextKey.indexOf('.') === -1))
   ) {
-    return (obj[key] = []) as unknown as KeyableObject;
+    const arr: unknown[] = [];
+    obj[key] = arr;
+    if (createdArrays !== undefined) {
+      createdArrays.push(arr);
+    }
+    return arr as unknown as KeyableObject;
   }
   return (obj[key] = {});
+}
+
+export function truncateSparseArrays(arrays: unknown[][]): void {
+  for (let i = 0; i < arrays.length; i++) {
+    const arr = arrays[i];
+    const length = arr.length;
+    let len = 0;
+    while (len < length && len in arr) {
+      len++;
+    }
+    if (len !== length) {
+      arr.length = len;
+    }
+  }
 }
 
 const MAX_DEPTH = 20;
