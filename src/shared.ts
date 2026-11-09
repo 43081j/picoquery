@@ -85,6 +85,10 @@ export interface Options {
   keyDeserializer: DeserializeKeyFunction;
   valueSerializer: SerializeValueFunction;
   shouldSerializeObject: ShouldSerializeObjectFunction;
+
+  // Allow sparse arrays, e.g. `foo[0]=a&foo[2]=b` would become `foo: ['a', undefined, 'b']`
+  // default: false
+  allowSparseArrays?: boolean;
 }
 
 const identityFunc = <T>(v: T): T => v;
@@ -98,5 +102,6 @@ export const defaultOptions: Options = {
   valueDeserializer: identityFunc,
   valueSerializer: defaultValueSerializer,
   keyDeserializer: identityFunc,
-  shouldSerializeObject: defaultShouldSerializeObject
+  shouldSerializeObject: defaultShouldSerializeObject,
+  allowSparseArrays: false
 };

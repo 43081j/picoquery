@@ -1,4 +1,4 @@
-import {getDeepObject} from './object-util.js';
+import {getDeepObject, truncateSparseArrays} from './object-util.js';
 import {
   type Options,
   type DeserializeKeyFunction,
@@ -63,7 +63,8 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
     nesting = defaultOptions.nesting,
     arrayRepeat = defaultOptions.arrayRepeat,
     nestingSyntax = defaultOptions.nestingSyntax,
-    delimiter = defaultOptions.delimiter
+    delimiter = defaultOptions.delimiter,
+    allowSparseArrays = defaultOptions.allowSparseArrays
   } = options ?? {};
   const charDelimiter =
     typeof delimiter === 'string' ? delimiter.charCodeAt(0) : delimiter;
@@ -76,6 +77,9 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
   if (typeof input !== 'string') {
     return result;
   }
+
+  const createdArrays: unknown[][] | undefined =
+    allowSparseArrays || !nesting ? undefined : [];
 
   const inputLength = input.length;
   let value = '';
@@ -128,7 +132,8 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
             lastKey,
             currentKey,
             isJsNestingSyntax && keyIsDot,
-            undefined
+            undefined,
+            createdArrays
           );
         }
       }
@@ -210,7 +215,8 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
               lastKey,
               currentKey,
               undefined,
-              undefined
+              undefined,
+              createdArrays
             );
           }
           lastKey = currentKey;
@@ -244,7 +250,9 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
               currentObj,
               lastKey,
               currentKey,
-              isJsNestingSyntax
+              isJsNestingSyntax,
+              undefined,
+              createdArrays
             );
           }
           lastKey = currentKey;
@@ -279,7 +287,9 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
               currentObj,
               lastKey,
               currentKey,
-              isJsNestingSyntax
+              isJsNestingSyntax,
+              undefined,
+              createdArrays
             );
           }
           lastKey = currentKey;
@@ -321,6 +331,13 @@ export function parse(input: string, options?: ParseOptions): ParsedQuery {
 
     prevIndex = i;
     prevChar = c;
+  }
+
+  // its fine we allocated the sparse arrays since they wont take up much
+  // memory, and huge indices just push it into object mode in v8.
+  // here we then do the check and truncate at the first undefined index
+  if (createdArrays !== undefined && createdArrays.length !== 0) {
+    truncateSparseArrays(createdArrays);
   }
 
   return result;
