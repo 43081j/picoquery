@@ -15,13 +15,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version: 25
       - name: Install Dependencies
         run: npm ci
       - name: Lint
         run: npm run lint
       - name: Test
         run: npm test
+        env:
+          NODE_OPTIONS: "--no-experimental-strip-types"
 
   publish-npm:
     needs: build
@@ -34,7 +36,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.x
+          node-version: 25
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
       - run: npm install -g npm@~11.10.0 # Work-around for https://github.com/npm/cli/issues/9151#issuecomment-4131466208
