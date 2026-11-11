@@ -81,7 +81,8 @@ The default options are as follows:
   nestingSyntax: 'dot',
   arrayRepeat: false,
   arrayRepeatSyntax: 'repeat',
-  delimiter: '&'
+  delimiter: '&',
+  allowSparseArrays: false
 }
 ```
 
@@ -158,6 +159,25 @@ parse('foo=x;bar=y', {delimiter: ';'});
 stringify({foo: 'x', bar: 'y'}, {delimiter: ';'});
 // foo=x;bar=y
 ```
+
+### `allowSparseArrays`
+
+If `true`, arrays parsed with gaps in their indices will be kept as sparse
+arrays.
+
+By default (`false`), parsed arrays are truncated at the first missing index.
+
+For example:
+
+```ts
+parse('foo[0]=x&foo[2]=y', {nestingSyntax: 'index'});
+// {foo: ['x']}
+
+parse('foo[0]=x&foo[2]=y', {nestingSyntax: 'index', allowSparseArrays: true});
+// {foo: ['x', <empty>, 'y']}
+```
+
+This option only applies when parsing.
 
 ### `valueDeserializer`
 
