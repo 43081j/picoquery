@@ -9,6 +9,24 @@ function isPrototypeKey(value: unknown) {
   );
 }
 
+/**
+ * Whether a string is a canonical array index (`0`, `1`, `2`, ...), i.e.
+ * digits only, with no sign, whitespace, exponent or leading zeros.
+ */
+function isArrayIndex(value: string): boolean {
+  const length = value.length;
+  if (length === 0 || (length > 1 && value.charCodeAt(0) === 48)) {
+    return false;
+  }
+  for (let i = 0; i < length; i++) {
+    const c = value.charCodeAt(i);
+    if (c < 48 || c > 57) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function getDeepObject(
   obj: KeyableObject,
   key: PropertyKey,
@@ -28,9 +46,7 @@ export function getDeepObject(
     !forceObject &&
     (forceArray ||
       typeof nextKey === 'number' ||
-      (typeof nextKey === 'string' &&
-        (nextKey as unknown as number) * 0 === 0 &&
-        nextKey.indexOf('.') === -1))
+      (typeof nextKey === 'string' && isArrayIndex(nextKey)))
   ) {
     const arr: unknown[] = [];
     obj[key] = arr;

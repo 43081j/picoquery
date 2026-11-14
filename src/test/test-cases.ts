@@ -433,6 +433,30 @@ export const testCases: TestCase[] = [
     output: {foo: ['x']}
   },
 
+  // Keys which look numeric but are not array indexes stay in an object
+  {
+    input: 'code.007=bond',
+    output: {code: {'007': 'bond'}}
+  },
+  {
+    input: 'size.1e3=big',
+    output: {size: {'1e3': 'big'}}
+  },
+  {
+    input: 'id.0x1f=a',
+    output: {id: {'0x1f': 'a'}}
+  },
+  {
+    input: 'v.-1=neg',
+    output: {v: {'-1': 'neg'}}
+  },
+  {
+    input: 'code[007]=bond',
+    stringifyOutput: 'code%5B007%5D=bond',
+    output: {code: {'007': 'bond'}},
+    options: {nesting: true, nestingSyntax: 'index'}
+  },
+
   // Delimiter: ;
   {
     input: 'foo=x;bar=y',

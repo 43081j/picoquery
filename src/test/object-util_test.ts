@@ -11,6 +11,12 @@ test('getDeepObject', async (t) => {
     assert.deepEqual(getDeepObject({}, 'foo', '1'), []);
   });
 
+  for (const key of ['007', '1e3', '0x1f', '-1', ' ', '', '1.5']) {
+    await t.test(`object if key "${key}" is not an array index`, () => {
+      assert.deepEqual(getDeepObject({}, 'foo', key), {});
+    });
+  }
+
   await t.test('array if key is number', () => {
     assert.deepEqual(getDeepObject({}, 'foo', 5), []);
   });
